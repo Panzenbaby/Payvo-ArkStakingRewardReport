@@ -1,4 +1,4 @@
-const tokenValueFactor: number = 1e8;
+export const tokenValueFactor: number = 1e8;
 
 export const secondsOfDay: number = 24 * 60 * 60;
 export const millisecondsOfDay: number = secondsOfDay * 1000;

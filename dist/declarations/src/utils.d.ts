@@ -1,3 +1,4 @@
+export declare const tokenValueFactor: number;
 export declare const secondsOfDay: number;
 export declare const millisecondsOfDay: number;
 export declare const isCrypto: (currency: string) => boolean;

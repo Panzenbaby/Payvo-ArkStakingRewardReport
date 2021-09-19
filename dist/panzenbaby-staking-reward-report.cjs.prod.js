@@ -64,11 +64,11 @@ const getDaysSince = fromTime => {
 };
 
 const {
-  Components: Components$1
+  Components: Components$4
 } = globalThis.payvo;
 const {
   Modal
-} = Components$1;
+} = Components$4;
 const WalletSelector = props => {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -125,11 +125,11 @@ const WalletItem = props => {
 };
 
 const {
-  Components
+  Components: Components$3
 } = globalThis.payvo;
 const {
   Card
-} = Components;
+} = Components$3;
 const Header = props => {
   return /*#__PURE__*/React__default['default'].createElement(Card, null, /*#__PURE__*/React__default['default'].createElement(WalletSelector, {
     selectedWallet: props.selectedWallet,
@@ -142,13 +142,114 @@ const Keys = {
   STORE_ADDRESS: 'store_address'
 };
 
-const RewardTable = props => {
-  const currentData = props.rewardData.get(props.selectedYear) ? props.rewardData.get(props.selectedYear) : [];
-  return /*#__PURE__*/React__default['default'].createElement("div", null, "Found ", currentData.length, " for ", props.selectedYear);
+const ARK_API_URL = 'https://api.ark.io/api';
+const PRICE_API_EP_URL = 'https://min-api.cryptocompare.com/data/histoday';
+const ARK_EXPLORER_URL = 'https://explorer.ark.io';
+const ARK_EXPLORER_TRANSACTIONS_PATH = '/transaction/';
+const ARK_EXPLORER_SENDER_PATH = '/wallets/';
+
+const {
+  Components: Components$2
+} = globalThis.payvo;
+const {
+  TableCell,
+  TableRow,
+  Link,
+  Icon
+} = Components$2;
+// TODO format with right language
+const TransactionListItem = props => {
+  const value = props.transaction.amount * props.transaction.price.close / tokenValueFactor;
+  const transactionExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_TRANSACTIONS_PATH + props.transaction.transactionId;
+  const senderExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_SENDER_PATH + props.transaction.senderPublicKey;
+  const idSnapShot = props.transaction.transactionId.substring(0, 9) + '...';
+  const date = new Date(props.transaction.date * 1000);
+  return /*#__PURE__*/React__default['default'].createElement(TableRow, null, /*#__PURE__*/React__default['default'].createElement(TableCell, {
+    innerClassName: "justify-center text-theme-secondary-text",
+    isCompact: true
+  }, /*#__PURE__*/React__default['default'].createElement("span", {
+    className: "justify-center whitespace-nowrap"
+  }, formatCurrency(props.transaction.amount, props.wallet.coin))), /*#__PURE__*/React__default['default'].createElement(TableCell, {
+    innerClassName: "justify-center text-theme-secondary-text",
+    isCompact: true
+  }, /*#__PURE__*/React__default['default'].createElement("span", {
+    className: "justify-center whitespace-nowrap"
+  }, formatCurrency(value, props.transaction.price.currency))), /*#__PURE__*/React__default['default'].createElement(TableCell, {
+    innerClassName: "justify-center text-theme-secondary-text",
+    isCompact: true
+  }, /*#__PURE__*/React__default['default'].createElement("span", {
+    className: "flex items-center  whitespace-nowrap"
+  }, date.toLocaleDateString(), " ", date.toLocaleTimeString())), /*#__PURE__*/React__default['default'].createElement(TableCell, {
+    innerClassName: "justify-center",
+    isCompact: true
+  }, /*#__PURE__*/React__default['default'].createElement(Link, {
+    to: senderExplorerUrl,
+    showExternalIcon: false,
+    isExternal: true
+  }, props.transaction.senderName)), /*#__PURE__*/React__default['default'].createElement(TableCell, {
+    innerClassName: "justify-center",
+    isCompact: true
+  }, /*#__PURE__*/React__default['default'].createElement(Link, {
+    to: transactionExplorerUrl,
+    showExternalIcon: false,
+    isExternal: true
+  }, /*#__PURE__*/React__default['default'].createElement("span", {
+    className: "flex flex-row"
+  }, /*#__PURE__*/React__default['default'].createElement("span", {
+    className: "active:text-theme-primary-400"
+  }, idSnapShot), /*#__PURE__*/React__default['default'].createElement(Icon, {
+    className: "ml-2 mt-2",
+    name: "MagnifyingGlassId"
+  })))));
 };
 
+const {
+  Components: Components$1
+} = globalThis.payvo;
+const {
+  Table
+} = Components$1;
+const columns = [{
+  Header: 'Amount',
+  accessor: 'amount',
+  className: 'ml-6 mr-2 justify-center'
+}, {
+  Header: 'Value',
+  accessor: transaction => transaction.amount * transaction.price.close,
+  className: 'ml-6 mr-2 justify-center'
+}, {
+  Header: 'Date',
+  accessor: 'date',
+  className: 'ml-6 mr-2 justify-center'
+}, {
+  Header: 'From',
+  className: 'ml-2 mr-2 justify-center'
+}, {
+  Header: 'Transaction',
+  className: 'ml-2 mr-2 justify-center'
+}];
+const RewardTable = props => {
+  const currentData = props.rewardData.get(props.selectedYear) ? props.rewardData.get(props.selectedYear) : [];
+  return /*#__PURE__*/React__default['default'].createElement("div", {
+    className: "mt-4 relative"
+  }, /*#__PURE__*/React__default['default'].createElement(Table, {
+    columns: columns,
+    data: currentData
+  }, transaction => /*#__PURE__*/React__default['default'].createElement(TransactionListItem, {
+    wallet: props.wallet,
+    transaction: transaction
+  })));
+};
+
+const {
+  Components
+} = globalThis.payvo;
+const {
+  Spinner
+} = Components;
 const HomePage = () => {
   const context = useWalletContext();
+  const [isLoading, setIsLoading] = React.useState(false);
   const [selectedYear] = React.useState(() => new Date().getFullYear());
   const [myStakingRewards, setMyStakingRewards] = React.useState(new Map());
   const [wallets] = React.useState(() => context.api.profile().wallets().filter(wallet => wallet.data.COIN === 'ARK' && wallet.data.NETWORK === 'ark.mainnet').map(wallet => {
@@ -173,33 +274,45 @@ const HomePage = () => {
 
   const onWalletSelected = wallet => {
     context.api.store().data().set(Keys.STORE_ADDRESS, wallet.address);
+    context.api.store().persist();
     setSelectedWallet(wallet);
   };
 
   React.useEffect(() => {
+    setIsLoading(true);
     context.repository.generateStakingRewardReport(selectedWallet).then(reportMap => {
       setMyStakingRewards(reportMap);
+      setIsLoading(false);
     }).catch(error => {
       // TODO handle error
       console.log(error.message);
     });
   }, [selectedWallet]);
+
+  const renderTable = () => {
+    if (isLoading) {
+      return /*#__PURE__*/React__default['default'].createElement("div", {
+        className: "flex h-full justify-center items-center"
+      }, /*#__PURE__*/React__default['default'].createElement(Spinner, null));
+    } else {
+      return /*#__PURE__*/React__default['default'].createElement(RewardTable, {
+        wallet: selectedWallet,
+        selectedYear: selectedYear,
+        rewardData: myStakingRewards
+      });
+    }
+  };
+
   return /*#__PURE__*/React__default['default'].createElement("div", {
     className: "flex ml-6 mr-6 flex-row w-full"
   }, /*#__PURE__*/React__default['default'].createElement("div", {
-    className: "flext w-full"
+    className: "flext flex-1 w-full"
   }, /*#__PURE__*/React__default['default'].createElement(Header, {
     selectedWallet: selectedWallet,
     wallets: wallets,
     onWalletSelected: onWalletSelected
-  }), /*#__PURE__*/React__default['default'].createElement(RewardTable, {
-    selectedYear: selectedYear,
-    rewardData: myStakingRewards
-  })));
+  }), renderTable()));
 };
-
-const ARK_API_URL = 'https://api.ark.io/api';
-const PRICE_API_EP_URL = 'https://min-api.cryptocompare.com/data/histoday';
 
 /**
  * This class is our data source. It is the interface to each used REST Api.
@@ -252,7 +365,7 @@ class RemoteDataStore {
           senderPublicKey: senderPublicKey,
           amount: amount,
           date: date,
-          closePriceOfDay: 0,
+          price: undefined,
           senderName: ''
         });
       });
@@ -456,14 +569,8 @@ class Repository {
       const price = prices.find(price => {
         return time >= price.time && time < price.time + secondsOfDay;
       });
-      let closePrice = undefined;
-
-      if (price !== undefined) {
-        closePrice = price.close;
-      }
-
       Object.assign(transaction, {
-        closePriceOfDay: closePrice
+        price: price
       });
     });
   }

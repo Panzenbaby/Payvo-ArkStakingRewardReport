@@ -52,7 +52,7 @@ export default class RemoteDataStore {
                     senderPublicKey: senderPublicKey,
                     amount: amount,
                     date: date,
-                    closePriceOfDay: 0,
+                    price: undefined,
                     senderName: '',
                 });
             });

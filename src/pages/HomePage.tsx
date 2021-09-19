@@ -5,9 +5,13 @@ import Header from '../components/header/Header';
 import {Keys} from '../Keys';
 import RewardTable from '../components/table/RewardTable';
 
+const {Components} = globalThis.payvo;
+const {Spinner} = Components;
+
 export const HomePage = () => {
     const context = useWalletContext();
 
+    const [isLoading, setIsLoading] = useState(false);
     const [selectedYear] = useState(() => new Date().getFullYear());
     const [myStakingRewards, setMyStakingRewards] = useState(new Map<number, Transaction[]>());
 
@@ -36,26 +40,44 @@ export const HomePage = () => {
 
     const onWalletSelected = (wallet: Wallet) => {
         context.api.store().data().set(Keys.STORE_ADDRESS, wallet.address);
+        context.api.store().persist();
         setSelectedWallet(wallet);
     };
 
     useEffect(() => {
+        setIsLoading(true);
         context.repository.generateStakingRewardReport(selectedWallet).then((reportMap: Map<number, Transaction[]>) => {
             setMyStakingRewards(reportMap);
+            setIsLoading(false);
         }).catch((error) => {
             // TODO handle error
             console.log(error.message);
         });
     }, [selectedWallet]);
 
+    const renderTable = () => {
+        if (isLoading) {
+            return (
+                <div className="flex h-full justify-center items-center">
+                    <Spinner/>
+                </div>
+            );
+        } else {
+            return (
+                <RewardTable wallet={selectedWallet} selectedYear={selectedYear} rewardData={myStakingRewards}/>
+            );
+        }
+    };
+
     return (
         <div className="flex ml-6 mr-6 flex-row w-full">
-            <div className="flext w-full">
+            <div className="flext flex-1 w-full">
                 <Header
                     selectedWallet={selectedWallet}
                     wallets={wallets}
                     onWalletSelected={onWalletSelected}/>
-                <RewardTable selectedYear={selectedYear} rewardData={myStakingRewards}/>
+
+                {renderTable()}
             </div>
         </div>
     );

@@ -71,12 +71,7 @@ export default class Repository {
                 return time >= price.time && time < (price.time + secondsOfDay);
             });
 
-            let closePrice = undefined;
-            if (price !== undefined) {
-                closePrice = price.close;
-            }
-
-            Object.assign(transaction, {closePriceOfDay: closePrice});
+            Object.assign(transaction, {price: price});
         });
     }
 

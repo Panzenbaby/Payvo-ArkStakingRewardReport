@@ -13,7 +13,7 @@ export interface Transaction {
     senderName: string,
     amount: number;
     date: number;
-    closePriceOfDay: number;
+    price: Price | undefined;
 }
 
 export interface Vote {
