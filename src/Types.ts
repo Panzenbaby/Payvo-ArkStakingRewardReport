@@ -7,6 +7,28 @@ export interface Wallet {
     coin: string;
 }
 
+export interface Transaction {
+    transactionId: string,
+    senderPublicKey: string;
+    senderName: string,
+    amount: number;
+    date: number;
+    closePriceOfDay: number;
+}
+
+export interface Vote {
+    delegateName: string,
+    delegatePublicKey: string,
+    date: number,
+    isDownVote: boolean,
+}
+
+export interface Price {
+    time: number,
+    close: number,
+    currency: string,
+}
+
 export const createWallet = (apiWallet) => {
     return {
         address: apiWallet.data.ADDRESS,

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import {WalletSelector} from './header/WalletSelector';
-import type {Wallet} from '../types/Types';
+import WalletSelector from './WalletSelector';
+import type {Wallet} from '../../Types';
 
 const {Components} = globalThis.payvo;
 const {Card} = Components;
@@ -22,3 +22,5 @@ export const Header = (props: HeaderProps) => {
         </Card>
     );
 };
+
+export default Header;

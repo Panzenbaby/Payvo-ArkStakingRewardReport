@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Avatar} from './Avatar';
-import type {Wallet} from '../../types/Types';
+import type {Wallet} from '../../Types';
 import {formatCurrency} from '../../utils';
 import {useWalletContext} from '../../provider/WalletProvider';
 
@@ -53,7 +53,9 @@ const WalletItem = (props: WalletItemProps) => {
     const coin = props.wallet.coin;
 
     const context = useWalletContext();
-    const [language] = useState(() => context.profile().language);
+
+    // TODO this is not the right way to get language of the payvo wallet. I need to check this
+    const [language] = useState(() => context.api.profile().language);
 
     return (
         <div
@@ -74,3 +76,5 @@ const WalletItem = (props: WalletItemProps) => {
         </div>
     );
 };
+
+export default WalletSelector;

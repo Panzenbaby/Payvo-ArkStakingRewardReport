@@ -22,5 +22,10 @@
     "rules": {
         "indent": ["error", 4],
         "max-len": ["error", 180]
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
     }
 }

@@ -8,13 +8,16 @@ function _interopDefault (e) { return e && e.__esModule ? e : { 'default': e }; 
 
 var React__default = /*#__PURE__*/_interopDefault(React);
 
-const WalletContext = /*#__PURE__*/React__default['default'].createContext();
-const WalletProvider = ({
-  api,
-  children
-}) => /*#__PURE__*/React__default['default'].createElement(WalletContext.Provider, {
-  value: api
-}, children);
+const WalletContext = /*#__PURE__*/React__default['default'].createContext({
+  api: undefined,
+  repository: undefined
+});
+const WalletProvider = props => /*#__PURE__*/React__default['default'].createElement(WalletContext.Provider, {
+  value: {
+    api: props.api,
+    repository: props.repository
+  }
+}, props.children);
 const useWalletContext = () => React__default['default'].useContext(WalletContext);
 
 const createWallet = apiWallet => {
@@ -36,6 +39,7 @@ const Avatar = ({
 }));
 
 const tokenValueFactor = 1e8;
+const secondsOfDay = 24 * 60 * 60;
 const isCrypto = currency => {
   return ['ARK', 'BTC', 'ETH', 'LTC'].includes(currency);
 };
@@ -53,6 +57,10 @@ const formatCurrency = (amount, currency, language = 'en') => {
     minimumFractionDigits: 2,
     maximumFractionDigits: asCrypto ? 8 : 2
   });
+};
+const getDaysSince = fromTime => {
+  const endDate = Date.now() / 1000;
+  return Math.round(Math.abs((fromTime - endDate) / secondsOfDay));
 };
 
 const {
@@ -97,8 +105,9 @@ const WalletItem = props => {
   const avatar = props.wallet.avatar;
   const balance = props.wallet.balance;
   const coin = props.wallet.coin;
-  const context = useWalletContext();
-  const [language] = React.useState(() => context.profile().language);
+  const context = useWalletContext(); // TODO this is not the right way to get language of the payvo wallet. I need to check this
+
+  const [language] = React.useState(() => context.api.profile().language);
   return /*#__PURE__*/React__default['default'].createElement("div", {
     className: "flex items-center cursor-pointer border-b border-dashed border-theme-secondary-300 dark:border-theme-secondary-800 space-x-4 py-4 last:border-0",
     onClick: () => props.onClick()
@@ -133,13 +142,22 @@ const Keys = {
   STORE_ADDRESS: 'store_address'
 };
 
+const RewardTable = props => {
+  const currentData = props.rewardData.get(props.selectedYear) ? props.rewardData.get(props.selectedYear) : [];
+  return /*#__PURE__*/React__default['default'].createElement("div", null, "Found ", currentData.length, " for ", props.selectedYear);
+};
+
 const HomePage = () => {
   const context = useWalletContext();
-  const [wallets] = React.useState(() => context.profile().wallets().filter(wallet => wallet.data.COIN === 'ARK' && wallet.data.NETWORK === 'ark.mainnet').map(wallet => createWallet(wallet)));
+  const [selectedYear] = React.useState(() => new Date().getFullYear());
+  const [myStakingRewards, setMyStakingRewards] = React.useState(new Map());
+  const [wallets] = React.useState(() => context.api.profile().wallets().filter(wallet => wallet.data.COIN === 'ARK' && wallet.data.NETWORK === 'ark.mainnet').map(wallet => {
+    return createWallet(wallet);
+  }));
   const [selectedWallet, setSelectedWallet] = React.useState(() => {
     if (wallets.length) {
       let result = wallets[0];
-      const selectedAddress = context.store().data().get(Keys.STORE_ADDRESS);
+      const selectedAddress = context.api.store().data().get(Keys.STORE_ADDRESS);
 
       if (selectedAddress) {
         const wallet = wallets.find(wallet => wallet.address == selectedAddress);
@@ -154,10 +172,18 @@ const HomePage = () => {
   });
 
   const onWalletSelected = wallet => {
-    context.store().data().set(Keys.STORE_ADDRESS, wallet.address);
+    context.api.store().data().set(Keys.STORE_ADDRESS, wallet.address);
     setSelectedWallet(wallet);
   };
 
+  React.useEffect(() => {
+    context.repository.generateStakingRewardReport(selectedWallet).then(reportMap => {
+      setMyStakingRewards(reportMap);
+    }).catch(error => {
+      // TODO handle error
+      console.log(error.message);
+    });
+  }, [selectedWallet]);
   return /*#__PURE__*/React__default['default'].createElement("div", {
     className: "flex ml-6 mr-6 flex-row w-full"
   }, /*#__PURE__*/React__default['default'].createElement("div", {
@@ -166,12 +192,341 @@ const HomePage = () => {
     selectedWallet: selectedWallet,
     wallets: wallets,
     onWalletSelected: onWalletSelected
-  }), /*#__PURE__*/React__default['default'].createElement("div", null, "TODO")));
+  }), /*#__PURE__*/React__default['default'].createElement(RewardTable, {
+    selectedYear: selectedYear,
+    rewardData: myStakingRewards
+  })));
 };
+
+const ARK_API_URL = 'https://api.ark.io/api';
+const PRICE_API_EP_URL = 'https://min-api.cryptocompare.com/data/histoday';
+
+/**
+ * This class is our data source. It is the interface to each used REST Api.
+ */
+
+class RemoteDataStore {
+  /**
+   * @param {any} walletApi the wallet api instance from the payvo wallet.
+   */
+  constructor(walletApi) {
+    this.walletApi = walletApi;
+  }
+  /**
+   * Loads all received transactions for the given wallet.
+   * @param {Wallet} wallet the wallet for which all transactions should be loaded.
+   */
+
+
+  async getReceivedTransactions(wallet) {
+    const address = wallet.address;
+    const requestPath = `/wallets/${address}/transactions/received?limit=100`;
+    const resultList = await this.getAllPagesOf(requestPath);
+    const result = [];
+
+    try {
+      resultList.forEach(transaction => {
+        const type = parseInt(transaction.type);
+        const date = transaction.timestamp.unix;
+        const senderPublicKey = transaction.senderPublicKey;
+        const transactionId = transaction.id;
+        let amount = 0.0;
+
+        switch (type) {
+          case 0:
+            amount = parseFloat(transaction.amount);
+            break;
+
+          case 6:
+            const payments = transaction.asset.payments;
+            payments.forEach(payment => {
+              if (payment.recipientId === address) {
+                amount = parseFloat(payment.amount);
+              }
+            });
+            break;
+        }
+
+        result.push({
+          transactionId: transactionId,
+          senderPublicKey: senderPublicKey,
+          amount: amount,
+          date: date,
+          closePriceOfDay: 0,
+          senderName: ''
+        });
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+
+    return result;
+  }
+  /**
+   * Loads all votes which have been made from the given wallet.
+   * @param {Wallet} wallet the wallet for which all votes should be loaded.
+   */
+
+
+  async getVotes(wallet) {
+    const address = wallet.address;
+    const path = `/wallets/${address}/votes?limit=100`;
+    const resultList = await this.getAllPagesOf(path);
+    const result = [];
+
+    try {
+      const delegateIds = new Set();
+      resultList.forEach(transaction => {
+        const vote = transaction.asset.votes[0];
+        const delegatePublicKey = vote.substr(1, vote.length);
+        delegateIds.add(delegatePublicKey);
+      });
+      const delegates = await this.getDelegates(Array.from(delegateIds));
+      resultList.forEach(transaction => {
+        const date = transaction.timestamp.unix;
+        const vote = transaction.asset.votes[0];
+        const isDownVote = vote[0] === '-';
+        const delegatePublicKey = vote.substr(1, vote.length);
+        const delegateName = delegates.get(delegatePublicKey);
+        result.push({
+          delegateName: delegateName,
+          delegatePublicKey: delegatePublicKey,
+          date: date,
+          isDownVote: isDownVote
+        });
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+
+    return result;
+  }
+  /**
+   * Load delegate information for each delegate id in the given list.
+   * @param {string[]} delegateIds a list of ids from delegates.
+   */
+
+
+  async getDelegates(delegateIds) {
+    const result = new Map();
+
+    try {
+      for (const delegateId of delegateIds) {
+        const url = ARK_API_URL + '/delegates?publicKey=' + delegateId;
+        const requestResult = await this.walletApi.http().get(url);
+        const response = requestResult.json();
+        result.set(delegateId, response.data[0].username);
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+
+    return result;
+  }
+  /**
+   * Load historical prices for the given transactions.
+   * @param {Wallet }wallet the wallet where the transactions are received.
+   * @param {Transaction[]} transactions the transactions which historical prices are requested.
+   */
+
+
+  async loadPrices(wallet, transactions) {
+    const prices = [];
+
+    try {
+      if (transactions.length > 0) {
+        const currency = 'EUR'; // TODO get current currency of payvo api
+
+        const lastTransactionTime = transactions[transactions.length - 1].date;
+        const fromTime = Math.round(transactions[0].date);
+        const query = {
+          fsym: wallet.coin,
+          tsym: currency,
+          toTs: lastTransactionTime,
+          limit: getDaysSince(fromTime)
+        };
+        const requestResult = await this.walletApi.http().get(PRICE_API_EP_URL, query);
+        const data = requestResult.json().Data;
+        data.forEach(price => prices.push({
+          time: price.time,
+          close: price.close,
+          currency: currency
+        }));
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+
+    return prices;
+  }
+  /**
+   * Will call the ARK REST api for the given path and loads all pages until the first page where data is empty.
+   * In case of "to many requests" error, this methode will do a timeout of 10 seconds before it will proceed.
+   * @param {string} requestPath the path of the requested endpoint.
+   */
+
+
+  async getAllPagesOf(requestPath) {
+    const result = [];
+    let page = 1;
+    let isEmpty = true;
+
+    do {
+      // TODO handle TO MANY REQUESTS with a timeout of 10s
+      // TODO right now there is no info about a selected peer in the payvo api. if this changes we can use the peer instead of domain
+      const url = ARK_API_URL + requestPath + `&page=${page}`;
+      const requestResult = await this.walletApi.http().get(url);
+      const response = requestResult.json();
+      Array.prototype.push.apply(result, response.data);
+      page++;
+      isEmpty = !response || !response.data || response.data.length == 0;
+    } while (!isEmpty);
+
+    return result;
+  }
+
+}
+
+/**
+ * This class handles all of the business logic. It is the interface from the plugin to the data.
+ */
+
+class Repository {
+  // eslint-disable-next-line valid-jsdoc
+  dateComparator = (lhs, rhs) => lhs.date - rhs.date; // eslint-disable-next-line valid-jsdoc
+
+  dateComparatorDesc = (lhs, rhs) => rhs.date - lhs.date;
+  /**
+   * @param {any} walletApi the api of the payvo wallet
+   */
+
+  constructor(walletApi) {
+    this.walletApi = walletApi;
+    this.remoteDataStore = new RemoteDataStore(walletApi);
+  }
+  /**
+   * Generates a all time staking reward report for the given wallet.
+   * @param {Wallet} wallet the current selected wallet which the report will be generated for.
+   */
+
+
+  async generateStakingRewardReport(wallet) {
+    const myTransactions = await this.remoteDataStore.getReceivedTransactions(wallet);
+    const myVotes = await this.remoteDataStore.getVotes(wallet);
+    myTransactions.sort(this.dateComparator);
+    myVotes.sort(this.dateComparator);
+    const transactionsMap = new Map();
+    myTransactions.forEach(transaction => {
+      const year = new Date(transaction.date * 1000).getFullYear();
+
+      if (!transactionsMap.get(year)) {
+        transactionsMap.set(year, []);
+      }
+
+      transactionsMap.get(year).push(transaction);
+    });
+    const stakingRewardsMap = new Map();
+
+    for (const entry of transactionsMap.entries()) {
+      const year = entry[0];
+      const currentTransactions = entry[1];
+      const prices = await this.remoteDataStore.loadPrices(wallet, currentTransactions);
+      await this.applyPrices(currentTransactions, prices);
+      const rewards = this.findStakingRewards(currentTransactions, myVotes);
+      rewards.sort(this.dateComparatorDesc);
+      stakingRewardsMap.set(year, rewards);
+    }
+
+    return stakingRewardsMap;
+  }
+  /**
+   * Apply the close price of prices to the the transactions.
+   * @param {Transaction[]} transactions
+   * @param {Price[]} prices
+   */
+
+
+  async applyPrices(transactions, prices) {
+    transactions.map(transaction => {
+      const time = transaction.date;
+      const price = prices.find(price => {
+        return time >= price.time && time < price.time + secondsOfDay;
+      });
+      let closePrice = undefined;
+
+      if (price !== undefined) {
+        closePrice = price.close;
+      }
+
+      Object.assign(transaction, {
+        closePriceOfDay: closePrice
+      });
+    });
+  }
+  /**
+   * Filter those transactions witch are from a delegate the wallet voted for.
+   * @param {Transaction[]} transactions a set of transactions which should be filtered.
+   * @param {Vote[]} votes the votes which are filtered for.
+   * @return {Transaction[]} the filtered list of transaction. Each transaction was received from a senderId
+   * of an entity of votes.
+   */
+
+
+  findStakingRewards(transactions, votes) {
+    const result = [];
+    const lastVoteTime = votes[votes.length - 1].date;
+    let since = 0;
+
+    while (since < lastVoteTime) {
+      const res = this.findStakingRewardsSince(transactions, votes, since);
+      Array.prototype.push.apply(result, res.result);
+      since = res.downVoteTime;
+    }
+
+    return result;
+  }
+  /**
+   * Filter those transactions witch are from a vote period.
+   * @param {Transaction[]} transactions a set of transactions which should be filtered.
+   * @param {Vote[]} votes the votes which are filtered for.
+   * @param {number} since The start time of the requested period. The up-vote-time of the used vote period is greater or equal this start time.
+   * @return {{result: Transaction[], downVoteTime: number}} the filtered transactions and the downVoteTime of the used vote period (or now if the period isn't over).
+   */
+
+
+  findStakingRewardsSince(transactions, votes, since) {
+    const upVote = votes.find(vote => !vote.isDownVote && since < vote.date);
+    const downVote = votes.find(vote => vote.isDownVote && vote.delegatePublicKey === upVote.delegatePublicKey);
+    let downVoteTime = Date.now();
+
+    if (downVote) {
+      downVoteTime = downVote.date;
+    }
+
+    const result = transactions.filter(transaction => {
+      return upVote.date <= transaction.date && transaction.date < downVoteTime && transaction.senderPublicKey === upVote.delegatePublicKey;
+    });
+    result.forEach(transaction => {
+      Object.assign(transaction, {
+        senderName: upVote.delegateName
+      });
+    });
+    return {
+      result: result,
+      downVoteTime: downVoteTime
+    };
+  }
+
+}
 
 const entry = api => {
   api.launch().render( /*#__PURE__*/React__default['default'].createElement(WalletProvider, {
-    api: api
+    api: api,
+    repository: new Repository(api)
   }, /*#__PURE__*/React__default['default'].createElement(HomePage, null)));
 };
 
