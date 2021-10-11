@@ -4,6 +4,8 @@ import {createWallet, Transaction, Wallet} from '../Types';
 import Header from '../components/header/Header';
 import {Keys} from '../Keys';
 import RewardTable from '../components/table/RewardTable';
+import {ErrorView} from '../components/ErrorView';
+import {EmptyWalletHint} from '../components/EmptyWalletHint';
 
 const {Components} = globalThis.payvo;
 const {Spinner} = Components;
@@ -12,7 +14,9 @@ export const HomePage = () => {
     const context = useWalletContext();
 
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedYear] = useState(() => new Date().getFullYear());
+    const [currentError, setError] = useState();
+    const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
+    const [availableYears, setAvailableYears] = useState();
     const [myStakingRewards, setMyStakingRewards] = useState(new Map<number, Transaction[]>());
 
     const [wallets] = useState(() =>
@@ -44,10 +48,16 @@ export const HomePage = () => {
         setSelectedWallet(wallet);
     };
 
+    const onRetryClicked = () => {
+        console.log('onRetryClicked');
+        // TODO
+    };
+
     useEffect(() => {
         setIsLoading(true);
         context.repository.generateStakingRewardReport(selectedWallet).then((reportMap: Map<number, Transaction[]>) => {
             setMyStakingRewards(reportMap);
+            setAvailableYears(Array.from(reportMap.keys()));
             setIsLoading(false);
         }).catch((error) => {
             // TODO handle error
@@ -69,16 +79,29 @@ export const HomePage = () => {
         }
     };
 
-    return (
-        <div className="flex ml-6 mr-6 flex-row w-full">
-            <div className="flext flex-1 w-full">
-                <Header
-                    selectedWallet={selectedWallet}
-                    wallets={wallets}
-                    onWalletSelected={onWalletSelected}/>
+    const renderContent = () => {
+        if (!wallets || wallets.length == 0) {
+            return <EmptyWalletHint/>;
+        } else if (currentError) {
+            return <ErrorView error={currentError} onClick={onRetryClicked}/>;
+        } else {
+            return (
+                <div className="flex ml-6 mr-6 flex-row w-full">
+                    <div className="flext flex-1 w-full">
+                        <Header
+                            selectedWallet={selectedWallet}
+                            wallets={wallets}
+                            onWalletSelected={onWalletSelected}
+                            selectedYear={selectedYear}
+                            yearOptions={availableYears}
+                            onYearSelected={(year) => setSelectedYear(year)}/>
 
-                {renderTable()}
-            </div>
-        </div>
-    );
+                        {renderTable()}
+                    </div>
+                </div>
+            );
+        }
+    };
+
+    return renderContent();
 };

@@ -24,6 +24,12 @@ export interface Price {
     close: number;
     currency: string;
 }
+export interface DropDownOption {
+    label: string;
+    secondaryLabel?: string;
+    value: string | number;
+    disabled?: boolean;
+}
 export declare const createWallet: (apiWallet: any) => {
     address: any;
     alias: any;

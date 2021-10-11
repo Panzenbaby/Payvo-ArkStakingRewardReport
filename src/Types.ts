@@ -29,6 +29,13 @@ export interface Price {
     currency: string,
 }
 
+export interface DropDownOption {
+    label: string;
+    secondaryLabel?: string;
+    value: string | number;
+    disabled?: boolean;
+}
+
 export const createWallet = (apiWallet) => {
     return {
         address: apiWallet.data.ADDRESS,

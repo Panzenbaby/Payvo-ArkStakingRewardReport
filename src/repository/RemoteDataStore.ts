@@ -137,7 +137,7 @@ export default class RemoteDataStore {
 
         try {
             if (transactions.length > 0) {
-                const currency = 'EUR'; // TODO get current currency of payvo api
+                const currency = 'EUR'; // TODO get current currency of payvo api: api.exchangeCurrency
                 const lastTransactionTime = transactions[transactions.length - 1].date;
                 const fromTime = Math.round(transactions[0].date);
                 const query = {

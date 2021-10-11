@@ -8,17 +8,17 @@ function _interopDefault (e) { return e && e.__esModule ? e : { 'default': e }; 
 
 var React__default = /*#__PURE__*/_interopDefault(React);
 
-const WalletContext = /*#__PURE__*/React__default['default'].createContext({
+const WalletContext = /*#__PURE__*/React__default["default"].createContext({
   api: undefined,
   repository: undefined
 });
-const WalletProvider = props => /*#__PURE__*/React__default['default'].createElement(WalletContext.Provider, {
+const WalletProvider = props => /*#__PURE__*/React__default["default"].createElement(WalletContext.Provider, {
   value: {
     api: props.api,
     repository: props.repository
   }
 }, props.children);
-const useWalletContext = () => React__default['default'].useContext(WalletContext);
+const useWalletContext = () => React__default["default"].useContext(WalletContext);
 
 const createWallet = apiWallet => {
   return {
@@ -32,9 +32,9 @@ const createWallet = apiWallet => {
 
 const Avatar = ({
   imageData
-}) => /*#__PURE__*/React__default['default'].createElement("div", {
+}) => /*#__PURE__*/React__default["default"].createElement("div", {
   className: "h-11 w-11 flex-shrink-0 overflow-hidden rounded-full"
-}, /*#__PURE__*/React__default['default'].createElement("img", {
+}, /*#__PURE__*/React__default["default"].createElement("img", {
   src: `data:image/svg+xml;utf8,${imageData}`
 }));
 
@@ -64,11 +64,11 @@ const getDaysSince = fromTime => {
 };
 
 const {
-  Components: Components$4
+  Components: Components$6
 } = globalThis.payvo;
 const {
   Modal
-} = Components$4;
+} = Components$6;
 const WalletSelector = props => {
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -85,14 +85,14 @@ const WalletSelector = props => {
     setIsOpen(false);
   };
 
-  return /*#__PURE__*/React__default['default'].createElement("div", null, /*#__PURE__*/React__default['default'].createElement(WalletItem, {
+  return /*#__PURE__*/React__default["default"].createElement("div", null, /*#__PURE__*/React__default["default"].createElement(WalletItem, {
     wallet: props.selectedWallet,
     onClick: onOpenClicked
-  }), /*#__PURE__*/React__default['default'].createElement(Modal, {
+  }), /*#__PURE__*/React__default["default"].createElement(Modal, {
     isOpen: isOpen,
     title: "Select Wallet",
     onClose: onCloseClicked
-  }, props.wallets.map(wallet => /*#__PURE__*/React__default['default'].createElement(WalletItem, {
+  }, props.wallets.map(wallet => /*#__PURE__*/React__default["default"].createElement(WalletItem, {
     key: wallet.address,
     wallet: wallet,
     onClick: () => onItemSelected(wallet)
@@ -108,34 +108,66 @@ const WalletItem = props => {
   const context = useWalletContext(); // TODO this is not the right way to get language of the payvo wallet. I need to check this
 
   const [language] = React.useState(() => context.api.profile().language);
-  return /*#__PURE__*/React__default['default'].createElement("div", {
+  return /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex items-center cursor-pointer border-b border-dashed border-theme-secondary-300 dark:border-theme-secondary-800 space-x-4 py-4 last:border-0",
     onClick: () => props.onClick()
-  }, /*#__PURE__*/React__default['default'].createElement(Avatar, {
+  }, /*#__PURE__*/React__default["default"].createElement(Avatar, {
     imageData: avatar
-  }), /*#__PURE__*/React__default['default'].createElement("div", {
+  }), /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex flex-col flex-1 overflow-hidden whitespace-nowrap no-ligatures"
-  }, /*#__PURE__*/React__default['default'].createElement("span", {
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "font-semibold text-theme-secondary-text text-sm"
-  }, alias), /*#__PURE__*/React__default['default'].createElement("span", {
+  }, alias), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "truncate text-theme-secondary-500 dark:text-theme-secondary-700 font-semibold"
-  }, address), /*#__PURE__*/React__default['default'].createElement("span", {
+  }, address), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "truncate text-theme-secondary-500 dark:text-theme-secondary-700 font-semibold"
   }, formatCurrency(balance, coin, language))));
 };
 
 const {
-  Components: Components$3
+  Components: Components$5
 } = globalThis.payvo;
 const {
   Card
-} = Components$3;
+} = Components$5;
 const Header = props => {
-  return /*#__PURE__*/React__default['default'].createElement(Card, null, /*#__PURE__*/React__default['default'].createElement(WalletSelector, {
+  const [selectedYear, setSelectedYear] = React.useState(props.selectedYear);
+  const [yearOptions, setYearOptions] = React.useState();
+  React.useEffect(() => {
+    if (props.yearOptions) {
+      const options = props.yearOptions.map(year => {
+        return {
+          label: year,
+          value: year
+        };
+      });
+      setYearOptions(options);
+    }
+  }, [props.yearOptions]);
+
+  const onYearSelected = selection => {
+    const year = selection.value;
+    setSelectedYear(year);
+    props.onYearSelected(year);
+  };
+
+  const renderYearSelector = () => {
+    return /*#__PURE__*/React__default["default"].createElement(Card, {
+      className: "ml-4",
+      actions: yearOptions,
+      onSelect: onYearSelected
+    }, /*#__PURE__*/React__default["default"].createElement("span", {
+      className: "ml-4 mr-4 mt-2 mb-2"
+    }, selectedYear));
+  };
+
+  return /*#__PURE__*/React__default["default"].createElement(Card, null, /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex flex-1 flex-row"
+  }, /*#__PURE__*/React__default["default"].createElement(Card, null, /*#__PURE__*/React__default["default"].createElement(WalletSelector, {
     selectedWallet: props.selectedWallet,
     wallets: props.wallets,
     onWalletSelected: props.onWalletSelected
-  }));
+  })), renderYearSelector()));
 };
 
 const Keys = {
@@ -149,14 +181,14 @@ const ARK_EXPLORER_TRANSACTIONS_PATH = '/transaction/';
 const ARK_EXPLORER_SENDER_PATH = '/wallets/';
 
 const {
-  Components: Components$2
+  Components: Components$4
 } = globalThis.payvo;
 const {
   TableCell,
   TableRow,
-  Link,
+  Link: Link$1,
   Icon
-} = Components$2;
+} = Components$4;
 // TODO format with right language
 const TransactionListItem = props => {
   const value = props.transaction.amount * props.transaction.price.close / tokenValueFactor;
@@ -164,51 +196,51 @@ const TransactionListItem = props => {
   const senderExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_SENDER_PATH + props.transaction.senderPublicKey;
   const idSnapShot = props.transaction.transactionId.substring(0, 9) + '...';
   const date = new Date(props.transaction.date * 1000);
-  return /*#__PURE__*/React__default['default'].createElement(TableRow, null, /*#__PURE__*/React__default['default'].createElement(TableCell, {
+  return /*#__PURE__*/React__default["default"].createElement(TableRow, null, /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
-  }, /*#__PURE__*/React__default['default'].createElement("span", {
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "justify-center whitespace-nowrap"
-  }, formatCurrency(props.transaction.amount, props.wallet.coin))), /*#__PURE__*/React__default['default'].createElement(TableCell, {
+  }, formatCurrency(props.transaction.amount, props.wallet.coin))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
-  }, /*#__PURE__*/React__default['default'].createElement("span", {
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "justify-center whitespace-nowrap"
-  }, formatCurrency(value, props.transaction.price.currency))), /*#__PURE__*/React__default['default'].createElement(TableCell, {
+  }, formatCurrency(value, props.transaction.price.currency))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
-  }, /*#__PURE__*/React__default['default'].createElement("span", {
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "flex items-center  whitespace-nowrap"
-  }, date.toLocaleDateString(), " ", date.toLocaleTimeString())), /*#__PURE__*/React__default['default'].createElement(TableCell, {
+  }, date.toLocaleDateString(), " ", date.toLocaleTimeString())), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center",
     isCompact: true
-  }, /*#__PURE__*/React__default['default'].createElement(Link, {
+  }, /*#__PURE__*/React__default["default"].createElement(Link$1, {
     to: senderExplorerUrl,
     showExternalIcon: false,
     isExternal: true
-  }, props.transaction.senderName)), /*#__PURE__*/React__default['default'].createElement(TableCell, {
+  }, props.transaction.senderName)), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center",
     isCompact: true
-  }, /*#__PURE__*/React__default['default'].createElement(Link, {
+  }, /*#__PURE__*/React__default["default"].createElement(Link$1, {
     to: transactionExplorerUrl,
     showExternalIcon: false,
     isExternal: true
-  }, /*#__PURE__*/React__default['default'].createElement("span", {
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "flex flex-row"
-  }, /*#__PURE__*/React__default['default'].createElement("span", {
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "active:text-theme-primary-400"
-  }, idSnapShot), /*#__PURE__*/React__default['default'].createElement(Icon, {
+  }, idSnapShot), /*#__PURE__*/React__default["default"].createElement(Icon, {
     className: "ml-2 mt-2",
     name: "MagnifyingGlassId"
   })))));
 };
 
 const {
-  Components: Components$1
+  Components: Components$3
 } = globalThis.payvo;
 const {
   Table
-} = Components$1;
+} = Components$3;
 const columns = [{
   Header: 'Amount',
   accessor: 'amount',
@@ -230,15 +262,61 @@ const columns = [{
 }];
 const RewardTable = props => {
   const currentData = props.rewardData.get(props.selectedYear) ? props.rewardData.get(props.selectedYear) : [];
-  return /*#__PURE__*/React__default['default'].createElement("div", {
+  return /*#__PURE__*/React__default["default"].createElement("div", {
     className: "mt-4 relative"
-  }, /*#__PURE__*/React__default['default'].createElement(Table, {
+  }, /*#__PURE__*/React__default["default"].createElement(Table, {
     columns: columns,
     data: currentData
-  }, transaction => /*#__PURE__*/React__default['default'].createElement(TransactionListItem, {
+  }, transaction => /*#__PURE__*/React__default["default"].createElement(TransactionListItem, {
     wallet: props.wallet,
     transaction: transaction
   })));
+};
+
+const {
+  Components: Components$2
+} = globalThis.payvo;
+const {
+  Button: Button$1
+} = Components$2;
+const ErrorView = props => {
+  return /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "relative flex flex-col flex-1 justify-center items-center rounded-lg bg-theme-feature"
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
+    className: "font-bold"
+  }, "Error"), /*#__PURE__*/React__default["default"].createElement("span", {
+    className: "font-bold text-red mt-6 mb-6"
+  }, props.error.message), /*#__PURE__*/React__default["default"].createElement(Button$1, {
+    variant: "danger",
+    className: "ContactAll__CreateButton justify-end",
+    onClick: props.onClick
+  }, "Retry"));
+};
+
+const {
+  Components: Components$1
+} = globalThis.payvo;
+const {
+  Button,
+  Link
+} = Components$1;
+const EmptyWalletHint = props => {
+  const context = useWalletContext();
+  return /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex flex-1 items-center"
+  }, /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex flex-1 flex-col items-center"
+  }, /*#__PURE__*/React__default["default"].createElement("span", null, "Your profile has no ARK wallet so far. Please import a wallet or create a new one."), /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "mt-4 flex-row justify-center items-stretch"
+  }, /*#__PURE__*/React__default["default"].createElement(Link, {
+    className: "mr-3",
+    to: `/profiles/${context.api.profile().id()}/wallets/import`
+  }, /*#__PURE__*/React__default["default"].createElement(Button, null, "Import")), /*#__PURE__*/React__default["default"].createElement(Link, {
+    className: "ml-3",
+    to: `/profiles/${context.api.profile().id()}/wallets/create`
+  }, /*#__PURE__*/React__default["default"].createElement(Button, {
+    variant: "secondary"
+  }, "Create")))));
 };
 
 const {
@@ -250,7 +328,9 @@ const {
 const HomePage = () => {
   const context = useWalletContext();
   const [isLoading, setIsLoading] = React.useState(false);
-  const [selectedYear] = React.useState(() => new Date().getFullYear());
+  const [currentError, setError] = React.useState();
+  const [selectedYear, setSelectedYear] = React.useState(() => new Date().getFullYear());
+  const [availableYears, setAvailableYears] = React.useState();
   const [myStakingRewards, setMyStakingRewards] = React.useState(new Map());
   const [wallets] = React.useState(() => context.api.profile().wallets().filter(wallet => wallet.data.COIN === 'ARK' && wallet.data.NETWORK === 'ark.mainnet').map(wallet => {
     return createWallet(wallet);
@@ -278,10 +358,15 @@ const HomePage = () => {
     setSelectedWallet(wallet);
   };
 
+  const onRetryClicked = () => {
+    console.log('onRetryClicked'); // TODO
+  };
+
   React.useEffect(() => {
     setIsLoading(true);
     context.repository.generateStakingRewardReport(selectedWallet).then(reportMap => {
       setMyStakingRewards(reportMap);
+      setAvailableYears(Array.from(reportMap.keys()));
       setIsLoading(false);
     }).catch(error => {
       // TODO handle error
@@ -291,11 +376,11 @@ const HomePage = () => {
 
   const renderTable = () => {
     if (isLoading) {
-      return /*#__PURE__*/React__default['default'].createElement("div", {
+      return /*#__PURE__*/React__default["default"].createElement("div", {
         className: "flex h-full justify-center items-center"
-      }, /*#__PURE__*/React__default['default'].createElement(Spinner, null));
+      }, /*#__PURE__*/React__default["default"].createElement(Spinner, null));
     } else {
-      return /*#__PURE__*/React__default['default'].createElement(RewardTable, {
+      return /*#__PURE__*/React__default["default"].createElement(RewardTable, {
         wallet: selectedWallet,
         selectedYear: selectedYear,
         rewardData: myStakingRewards
@@ -303,15 +388,31 @@ const HomePage = () => {
     }
   };
 
-  return /*#__PURE__*/React__default['default'].createElement("div", {
-    className: "flex ml-6 mr-6 flex-row w-full"
-  }, /*#__PURE__*/React__default['default'].createElement("div", {
-    className: "flext flex-1 w-full"
-  }, /*#__PURE__*/React__default['default'].createElement(Header, {
-    selectedWallet: selectedWallet,
-    wallets: wallets,
-    onWalletSelected: onWalletSelected
-  }), renderTable()));
+  const renderContent = () => {
+    if (!wallets || wallets.length == 0) {
+      return /*#__PURE__*/React__default["default"].createElement(EmptyWalletHint, null);
+    } else if (currentError) {
+      return /*#__PURE__*/React__default["default"].createElement(ErrorView, {
+        error: currentError,
+        onClick: onRetryClicked
+      });
+    } else {
+      return /*#__PURE__*/React__default["default"].createElement("div", {
+        className: "flex ml-6 mr-6 flex-row w-full"
+      }, /*#__PURE__*/React__default["default"].createElement("div", {
+        className: "flext flex-1 w-full"
+      }, /*#__PURE__*/React__default["default"].createElement(Header, {
+        selectedWallet: selectedWallet,
+        wallets: wallets,
+        onWalletSelected: onWalletSelected,
+        selectedYear: selectedYear,
+        yearOptions: availableYears,
+        onYearSelected: year => setSelectedYear(year)
+      }), renderTable()));
+    }
+  };
+
+  return renderContent();
 };
 
 /**
@@ -451,7 +552,7 @@ class RemoteDataStore {
 
     try {
       if (transactions.length > 0) {
-        const currency = 'EUR'; // TODO get current currency of payvo api
+        const currency = 'EUR'; // TODO get current currency of payvo api: api.exchangeCurrency
 
         const lastTransactionTime = transactions[transactions.length - 1].date;
         const fromTime = Math.round(transactions[0].date);
@@ -631,10 +732,10 @@ class Repository {
 }
 
 const entry = api => {
-  api.launch().render( /*#__PURE__*/React__default['default'].createElement(WalletProvider, {
+  api.launch().render( /*#__PURE__*/React__default["default"].createElement(WalletProvider, {
     api: api,
     repository: new Repository(api)
-  }, /*#__PURE__*/React__default['default'].createElement(HomePage, null)));
+  }, /*#__PURE__*/React__default["default"].createElement(HomePage, null)));
 };
 
-exports['default'] = entry;
+exports["default"] = entry;
