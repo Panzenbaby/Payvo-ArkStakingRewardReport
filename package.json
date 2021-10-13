@@ -23,7 +23,8 @@
 			"LAUNCH",
 			"HTTP",
 			"PROFILE",
-			"STORE"
+			"STORE",
+			"FILESYSTEM"
 		],
 		"urls": [
 			"^"

@@ -62,41 +62,44 @@ const getDaysSince = fromTime => {
   const endDate = Date.now() / 1000;
   return Math.round(Math.abs((fromTime - endDate) / secondsOfDay));
 };
+const buildExportRow = (transaction, token, language) => {
+  const amount = getAmountValue(transaction, token, language);
+  const value = getPriceValue(transaction, language);
+  const transactionDate = new Date(transaction.date * 1000);
+  const dateTime = transactionDate.toLocaleDateString() + ' ' + transactionDate.toLocaleTimeString();
+  const transactionId = transaction.transactionId;
+  return `${amount} | ${value} | ${dateTime} | ${transactionId}`;
+};
 
-const {
-  Components: Components$6
-} = globalThis.payvo;
-const {
-  Modal
-} = Components$6;
-const WalletSelector = props => {
-  const [isOpen, setIsOpen] = React.useState(false);
+const getPriceValue = (transaction, language) => {
+  let closePrice = undefined;
 
-  const onItemSelected = wallet => {
-    props.onWalletSelected(wallet);
-    setIsOpen(false);
-  };
+  if (transaction.price && transaction.price.close) {
+    closePrice = transaction.price.close;
+  }
 
-  const onOpenClicked = () => {
-    setIsOpen(true);
-  };
+  if (!closePrice) {
+    return 'NaN';
+  }
 
-  const onCloseClicked = () => {
-    setIsOpen(false);
-  };
+  let tokens = transaction.amount;
+  const currency = transaction.price.currency;
 
-  return /*#__PURE__*/React__default["default"].createElement("div", null, /*#__PURE__*/React__default["default"].createElement(WalletItem, {
-    wallet: props.selectedWallet,
-    onClick: onOpenClicked
-  }), /*#__PURE__*/React__default["default"].createElement(Modal, {
-    isOpen: isOpen,
-    title: "Select Wallet",
-    onClose: onCloseClicked
-  }, props.wallets.map(wallet => /*#__PURE__*/React__default["default"].createElement(WalletItem, {
-    key: wallet.address,
-    wallet: wallet,
-    onClick: () => onItemSelected(wallet)
-  }))));
+  if (!isCrypto(currency)) {
+    tokens = tokens / tokenValueFactor;
+  }
+
+  const value = tokens * closePrice;
+  return formatCurrency(value, currency, language);
+};
+
+const getAmountValue = (transaction, token, language) => {
+  if (!transaction.amount) {
+    return 'NaN';
+  }
+
+  const value = transaction.amount;
+  return formatCurrency(value, token, language);
 };
 
 const WalletItem = props => {
@@ -109,8 +112,7 @@ const WalletItem = props => {
 
   const [language] = React.useState(() => context.api.profile().language);
   return /*#__PURE__*/React__default["default"].createElement("div", {
-    className: "flex items-center cursor-pointer border-b border-dashed border-theme-secondary-300 dark:border-theme-secondary-800 space-x-4 py-4 last:border-0",
-    onClick: () => props.onClick()
+    className: "flex items-center space-x-4 py-4"
   }, /*#__PURE__*/React__default["default"].createElement(Avatar, {
     imageData: avatar
   }), /*#__PURE__*/React__default["default"].createElement("div", {
@@ -128,13 +130,25 @@ const {
   Components: Components$5
 } = globalThis.payvo;
 const {
-  Card
+  Card,
+  Button: Button$2
 } = Components$5;
 const Header = props => {
   const [selectedYear, setSelectedYear] = React.useState(props.selectedYear);
+  const [walletActions, setWalletActions] = React.useState();
   const [yearOptions, setYearOptions] = React.useState();
   React.useEffect(() => {
-    if (props.yearOptions) {
+    const options = props.wallets.map(wallet => {
+      return {
+        label: wallet.alias,
+        secondaryLabel: wallet.address,
+        value: wallet
+      };
+    });
+    setWalletActions(options);
+  }, [props.wallets]);
+  React.useEffect(() => {
+    if (props.yearOptions && !props.isLoading) {
       const options = props.yearOptions.map(year => {
         return {
           label: year,
@@ -142,8 +156,10 @@ const Header = props => {
         };
       });
       setYearOptions(options);
+    } else {
+      setYearOptions(undefined);
     }
-  }, [props.yearOptions]);
+  }, [props.yearOptions, props.isLoading]);
 
   const onYearSelected = selection => {
     const year = selection.value;
@@ -151,23 +167,80 @@ const Header = props => {
     props.onYearSelected(year);
   };
 
-  const renderYearSelector = () => {
-    return /*#__PURE__*/React__default["default"].createElement(Card, {
-      className: "ml-4",
-      actions: yearOptions,
-      onSelect: onYearSelected
-    }, /*#__PURE__*/React__default["default"].createElement("span", {
-      className: "ml-4 mr-4 mt-2 mb-2"
-    }, selectedYear));
+  const onWalletSelected = selection => {
+    const wallet = selection.value;
+    props.onWalletSelected(wallet);
   };
 
-  return /*#__PURE__*/React__default["default"].createElement(Card, null, /*#__PURE__*/React__default["default"].createElement("div", {
-    className: "flex flex-1 flex-row"
-  }, /*#__PURE__*/React__default["default"].createElement(Card, null, /*#__PURE__*/React__default["default"].createElement(WalletSelector, {
-    selectedWallet: props.selectedWallet,
-    wallets: props.wallets,
-    onWalletSelected: props.onWalletSelected
-  })), renderYearSelector()));
+  const renderSummary = () => {
+    if (props.isLoading || !props.summary) {
+      return undefined;
+    }
+
+    let summary = 'NaN';
+
+    if (props.summary && props.summary.value && props.summary.currency) {
+      summary = formatCurrency(props.summary.value, props.summary.currency);
+    }
+
+    return /*#__PURE__*/React__default["default"].createElement(Card, {
+      className: "flex ml-4 mr-4"
+    }, /*#__PURE__*/React__default["default"].createElement("div", {
+      className: "flex flex-col"
+    }, /*#__PURE__*/React__default["default"].createElement("span", {
+      className: "font-semibold text-theme-secondary-text text-sm"
+    }, "Received Staking Rewards"), /*#__PURE__*/React__default["default"].createElement("span", {
+      className: "font-bold text-theme-primary-600"
+    }, summary)));
+  };
+
+  const renderButtons = () => {
+    if (props.isLoading) {
+      return undefined;
+    }
+
+    return /*#__PURE__*/React__default["default"].createElement(Card, {
+      className: "flex flex-1 mr-4"
+    }, /*#__PURE__*/React__default["default"].createElement("div", {
+      className: "flex flex-row"
+    }, /*#__PURE__*/React__default["default"].createElement(Button$2, {
+      className: "flex flex-1 ml-4 mr-2",
+      icon: "ArrowRotateLeft",
+      onClick: props.onRetryClicked
+    }), /*#__PURE__*/React__default["default"].createElement(Button$2, {
+      className: "flex flex-1 ml-2 mr-2",
+      icon: "ArrowUpTurnBracket",
+      onClick: props.onExportClicked
+    }), /*#__PURE__*/React__default["default"].createElement(Button$2, {
+      className: "flex flex-1 ml-2 mr-4",
+      icon: "CircleInfo",
+      onClick: props.onInfoClicked
+    })));
+  };
+
+  return /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex flex-col"
+  }, /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex flex-row"
+  }, /*#__PURE__*/React__default["default"].createElement(Card, {
+    className: "flex ml-4",
+    actions: walletActions,
+    onSelect: onWalletSelected
+  }, /*#__PURE__*/React__default["default"].createElement(WalletItem, {
+    wallet: props.selectedWallet
+  })), /*#__PURE__*/React__default["default"].createElement(Card, {
+    className: "flex ml-4",
+    actions: yearOptions,
+    onSelect: onYearSelected
+  }, /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex flex-col"
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
+    className: "flex flex-row justify-center font-semibold text-theme-secondary-text text-sm"
+  }, "Period"), /*#__PURE__*/React__default["default"].createElement("span", {
+    className: "align-center ml-4 mr-4 text-theme-secondary-700 font-bold"
+  }, selectedYear))), renderSummary(), renderButtons()), /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex full-w mt-4 mb-4 pt-0.5 bg-theme-secondary-800"
+  }));
 };
 
 const Keys = {
@@ -262,15 +335,22 @@ const columns = [{
 }];
 const RewardTable = props => {
   const currentData = props.rewardData.get(props.selectedYear) ? props.rewardData.get(props.selectedYear) : [];
-  return /*#__PURE__*/React__default["default"].createElement("div", {
-    className: "mt-4 relative"
-  }, /*#__PURE__*/React__default["default"].createElement(Table, {
-    columns: columns,
-    data: currentData
-  }, transaction => /*#__PURE__*/React__default["default"].createElement(TransactionListItem, {
-    wallet: props.wallet,
-    transaction: transaction
-  })));
+
+  if (currentData.length == 0) {
+    return /*#__PURE__*/React__default["default"].createElement("div", {
+      className: "mt-4 relative"
+    }, /*#__PURE__*/React__default["default"].createElement("span", null, "The report of the selected period is empty."));
+  } else {
+    return /*#__PURE__*/React__default["default"].createElement("div", {
+      className: "mt-4 relative"
+    }, /*#__PURE__*/React__default["default"].createElement(Table, {
+      columns: columns,
+      data: currentData
+    }, transaction => /*#__PURE__*/React__default["default"].createElement(TransactionListItem, {
+      wallet: props.wallet,
+      transaction: transaction
+    })));
+  }
 };
 
 const {
@@ -319,6 +399,35 @@ const EmptyWalletHint = props => {
   }, "Create")))));
 };
 
+const exportTransactions = (api, wallet, year, transactions) => {
+  if (!transactions || transactions.length == 0) {
+    return;
+  }
+
+  const rows = [];
+  const currency = transactions[0].price.currency; // TODO i18n
+
+  const amount = 'amount';
+  const value = 'value';
+  const date = 'date';
+  const transactionId = 'transactionId';
+  const header = `${wallet.coin} ${amount} | ${currency} ${value} | ${date} | ${transactionId}`;
+  rows.push(header);
+  transactions.forEach(transaction => {
+    const language = 'en'; // TODO how to get token?
+
+    rows.push(buildExportRow(transaction, wallet.coin, language));
+  });
+  const asString = rows.join('\n');
+  api.filesystem().askUserToSaveFile(asString).then(result => {
+    // TODO find a way to notify user
+    console.log('success');
+  }).catch(error => {
+    // TODO find a way to notify user
+    console.log(error.message);
+  });
+};
+
 const {
   Components
 } = globalThis.payvo;
@@ -331,6 +440,7 @@ const HomePage = () => {
   const [currentError, setError] = React.useState();
   const [selectedYear, setSelectedYear] = React.useState(() => new Date().getFullYear());
   const [availableYears, setAvailableYears] = React.useState();
+  const [summary, setSummary] = React.useState();
   const [myStakingRewards, setMyStakingRewards] = React.useState(new Map());
   const [wallets] = React.useState(() => context.api.profile().wallets().filter(wallet => wallet.data.COIN === 'ARK' && wallet.data.NETWORK === 'ark.mainnet').map(wallet => {
     return createWallet(wallet);
@@ -358,20 +468,57 @@ const HomePage = () => {
     setSelectedWallet(wallet);
   };
 
-  const onRetryClicked = () => {
-    console.log('onRetryClicked'); // TODO
-  };
-
   React.useEffect(() => {
+    const transactions = myStakingRewards.get(selectedYear);
+
+    if (transactions) {
+      let tmpSummary = 0;
+      let currency = undefined;
+      transactions.forEach(transaction => {
+        const value = transaction.amount * transaction.price.close / tokenValueFactor;
+        tmpSummary += value;
+
+        if (!currency) {
+          currency = transaction.price.currency;
+        }
+      });
+      setSummary({
+        value: tmpSummary,
+        currency: currency
+      });
+    }
+  }, [myStakingRewards, selectedYear]);
+
+  const loadTransactions = () => {
     setIsLoading(true);
     context.repository.generateStakingRewardReport(selectedWallet).then(reportMap => {
       setMyStakingRewards(reportMap);
       setAvailableYears(Array.from(reportMap.keys()));
       setIsLoading(false);
     }).catch(error => {
-      // TODO handle error
       console.log(error.message);
+      console.log(error.message);
+      setError(error);
     });
+  };
+
+  const onRetryClicked = () => {
+    if (!isLoading) {
+      setError(undefined);
+      loadTransactions();
+    }
+  };
+
+  const onExportClicked = () => {
+    exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear));
+  };
+
+  const onInfoClicked = () => {
+    console.log('onInfoClicked'); // TODO
+  };
+
+  React.useEffect(() => {
+    loadTransactions();
   }, [selectedWallet]);
 
   const renderTable = () => {
@@ -405,9 +552,14 @@ const HomePage = () => {
         selectedWallet: selectedWallet,
         wallets: wallets,
         onWalletSelected: onWalletSelected,
+        isLoading: isLoading,
+        summary: summary,
         selectedYear: selectedYear,
         yearOptions: availableYears,
-        onYearSelected: year => setSelectedYear(year)
+        onYearSelected: year => setSelectedYear(year),
+        onRetryClicked: onRetryClicked,
+        onExportClicked: onExportClicked,
+        onInfoClicked: onInfoClicked
       }), renderTable()));
     }
   };
@@ -686,6 +838,11 @@ class Repository {
 
   findStakingRewards(transactions, votes) {
     const result = [];
+
+    if (votes.length == 0) {
+      return result;
+    }
+
     const lastVoteTime = votes[votes.length - 1].date;
     let since = 0;
 

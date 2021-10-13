@@ -6,6 +6,8 @@ import {Keys} from '../Keys';
 import RewardTable from '../components/table/RewardTable';
 import {ErrorView} from '../components/ErrorView';
 import {EmptyWalletHint} from '../components/EmptyWalletHint';
+import {tokenValueFactor} from '../utils';
+import * as ExportUtils from '../ExportUtils';
 
 const {Components} = globalThis.payvo;
 const {Spinner} = Components;
@@ -17,6 +19,7 @@ export const HomePage = () => {
     const [currentError, setError] = useState();
     const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
     const [availableYears, setAvailableYears] = useState();
+    const [summary, setSummary] = useState();
     const [myStakingRewards, setMyStakingRewards] = useState(new Map<number, Transaction[]>());
 
     const [wallets] = useState(() =>
@@ -48,21 +51,57 @@ export const HomePage = () => {
         setSelectedWallet(wallet);
     };
 
-    const onRetryClicked = () => {
-        console.log('onRetryClicked');
-        // TODO
-    };
-
     useEffect(() => {
+        const transactions = myStakingRewards.get(selectedYear);
+        if (transactions) {
+            let tmpSummary = 0;
+
+            let currency = undefined;
+            transactions.forEach((transaction) => {
+                const value = transaction.amount * transaction.price.close / tokenValueFactor;
+                tmpSummary += value;
+
+                if (!currency) {
+                    currency = transaction.price.currency;
+                }
+            });
+
+            setSummary({value: tmpSummary, currency: currency});
+        }
+    }, [myStakingRewards, selectedYear]);
+
+    const loadTransactions = () => {
         setIsLoading(true);
         context.repository.generateStakingRewardReport(selectedWallet).then((reportMap: Map<number, Transaction[]>) => {
             setMyStakingRewards(reportMap);
             setAvailableYears(Array.from(reportMap.keys()));
             setIsLoading(false);
         }).catch((error) => {
-            // TODO handle error
             console.log(error.message);
+            console.log(error.message);
+            setError(error);
         });
+    };
+
+    const onRetryClicked = () => {
+        if (!isLoading) {
+            setError(undefined);
+            loadTransactions();
+        }
+    };
+
+    const onExportClicked = () => {
+        // TODO maybe reduce number of arguments
+        ExportUtils.exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear));
+    };
+
+    const onInfoClicked = () => {
+        console.log('onInfoClicked');
+        // TODO
+    };
+
+    useEffect(() => {
+        loadTransactions();
     }, [selectedWallet]);
 
     const renderTable = () => {
@@ -92,9 +131,14 @@ export const HomePage = () => {
                             selectedWallet={selectedWallet}
                             wallets={wallets}
                             onWalletSelected={onWalletSelected}
+                            isLoading={isLoading}
+                            summary={summary}
                             selectedYear={selectedYear}
                             yearOptions={availableYears}
-                            onYearSelected={(year) => setSelectedYear(year)}/>
+                            onYearSelected={(year) => setSelectedYear(year)}
+                            onRetryClicked={onRetryClicked}
+                            onExportClicked={onExportClicked}
+                            onInfoClicked={onInfoClicked}/>
 
                         {renderTable()}
                     </div>

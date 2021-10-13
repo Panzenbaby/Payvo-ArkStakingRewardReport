@@ -1,0 +1,35 @@
+import {Transaction, Wallet} from './Types';
+import {buildExportRow} from './utils';
+
+
+export const exportTransactions = (api: any, wallet: Wallet, year: number, transactions: Transaction[]) => {
+    if (!transactions || transactions.length == 0) {
+        return;
+    }
+
+    const rows = [];
+    const currency = transactions[0].price.currency;
+
+    // TODO i18n
+    const amount = 'amount';
+    const value = 'value';
+    const date = 'date';
+    const transactionId = 'transactionId';
+
+    const header = `${wallet.coin} ${amount} | ${currency} ${value} | ${date} | ${transactionId}`;
+    rows.push(header);
+
+    transactions.forEach((transaction) => {
+        const language = 'en'; // TODO how to get token?
+        rows.push(buildExportRow(transaction, wallet.coin, language));
+    });
+
+    const asString = rows.join('\n');
+    api.filesystem().askUserToSaveFile(asString).then((result) => {
+        // TODO find a way to notify user
+        console.log('success');
+    }).catch((error) => {
+        // TODO find a way to notify user
+        console.log(error.message);
+    });
+};

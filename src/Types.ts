@@ -36,6 +36,11 @@ export interface DropDownOption {
     disabled?: boolean;
 }
 
+export interface Summary {
+    value: number;
+    currency: string;
+}
+
 export const createWallet = (apiWallet) => {
     return {
         address: apiWallet.data.ADDRESS,

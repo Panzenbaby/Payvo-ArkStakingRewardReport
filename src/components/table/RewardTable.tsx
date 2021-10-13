@@ -40,13 +40,21 @@ interface RewardTableProps {
 export const RewardTable = (props: RewardTableProps) => {
     const currentData = props.rewardData.get(props.selectedYear) ? props.rewardData.get(props.selectedYear) : [];
 
-    return (
-        <div className="mt-4 relative">
-            <Table columns={columns} data={currentData}>
-                {(transaction: Transaction) => <TransactionListItem wallet={props.wallet} transaction={transaction}/>}
-            </Table>
-        </div>
-    );
+    if (currentData.length == 0) {
+        return (
+            <div className="mt-4 relative">
+                <span>The report of the selected period is empty.</span>
+            </div>
+        );
+    } else {
+        return (
+            <div className="mt-4 relative">
+                <Table columns={columns} data={currentData}>
+                    {(transaction: Transaction) => <TransactionListItem wallet={props.wallet} transaction={transaction}/>}
+                </Table>
+            </div>
+        );
+    }
 };
 
 export default RewardTable;

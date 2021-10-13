@@ -30,6 +30,10 @@ export interface DropDownOption {
     value: string | number;
     disabled?: boolean;
 }
+export interface Summary {
+    value: number;
+    currency: string;
+}
 export declare const createWallet: (apiWallet: any) => {
     address: any;
     alias: any;

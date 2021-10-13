@@ -84,6 +84,10 @@ export default class Repository {
      */
     private findStakingRewards(transactions: Transaction[], votes: Vote[]): Transaction[] {
         const result: Transaction[] = [];
+        if (votes.length == 0) {
+            return result;
+        }
+
         const lastVoteTime = votes[votes.length - 1].date;
         let since = 0;
         while (since < lastVoteTime) {
