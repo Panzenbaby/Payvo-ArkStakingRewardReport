@@ -11,7 +11,7 @@ interface ErrorViewProps {
 export const ErrorView = (props: ErrorViewProps) => {
     return (
         <div className="relative flex flex-col flex-1 justify-center items-center rounded-lg bg-theme-feature">
-            <span className="font-bold">
+            <span className="text-2xl font-bold">
                     Error
             </span>
 

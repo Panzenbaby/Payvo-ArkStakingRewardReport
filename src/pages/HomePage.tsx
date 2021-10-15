@@ -8,6 +8,8 @@ import {ErrorView} from '../components/ErrorView';
 import {EmptyWalletHint} from '../components/EmptyWalletHint';
 import {tokenValueFactor} from '../utils';
 import * as ExportUtils from '../ExportUtils';
+import {InfoModal} from '../components/modals/InfoModal';
+import {DisclaimerView} from '../components/DisclaimerView';
 
 const {Components} = globalThis.payvo;
 const {Spinner} = Components;
@@ -21,6 +23,10 @@ export const HomePage = () => {
     const [availableYears, setAvailableYears] = useState();
     const [summary, setSummary] = useState();
     const [myStakingRewards, setMyStakingRewards] = useState(new Map<number, Transaction[]>());
+    const [isInfoShown, setInfoShown] = useState(false);
+    const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => {
+        return context.api.store().data().get(Keys.DISCLAIMER_ACCEPTED) === true;
+    });
 
     const [wallets] = useState(() =>
         context.api.profile().wallets()
@@ -45,12 +51,6 @@ export const HomePage = () => {
         }
     });
 
-    const onWalletSelected = (wallet: Wallet) => {
-        context.api.store().data().set(Keys.STORE_ADDRESS, wallet.address);
-        context.api.store().persist();
-        setSelectedWallet(wallet);
-    };
-
     useEffect(() => {
         const transactions = myStakingRewards.get(selectedYear);
         if (transactions) {
@@ -69,6 +69,21 @@ export const HomePage = () => {
             setSummary({value: tmpSummary, currency: currency});
         }
     }, [myStakingRewards, selectedYear]);
+
+    useEffect(() => {
+        loadTransactions();
+    }, [selectedWallet]);
+
+    const onWalletSelected = (wallet: Wallet) => {
+        context.api.store().data().set(Keys.STORE_ADDRESS, wallet.address);
+        context.api.store().persist();
+        setSelectedWallet(wallet);
+    };
+
+    const onDisclaimerAccepted = () => {
+        setDisclaimerAccepted(true);
+        context.api.store().data().set(Keys.DISCLAIMER_ACCEPTED, true);
+    };
 
     const loadTransactions = () => {
         setIsLoading(true);
@@ -91,18 +106,12 @@ export const HomePage = () => {
     };
 
     const onExportClicked = () => {
-        // TODO maybe reduce number of arguments
         ExportUtils.exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear));
     };
 
     const onInfoClicked = () => {
-        console.log('onInfoClicked');
-        // TODO
+        setInfoShown(true);
     };
-
-    useEffect(() => {
-        loadTransactions();
-    }, [selectedWallet]);
 
     const renderTable = () => {
         if (isLoading) {
@@ -119,7 +128,12 @@ export const HomePage = () => {
     };
 
     const renderContent = () => {
-        if (!wallets || wallets.length == 0) {
+        if (!disclaimerAccepted) {
+            return (
+                <DisclaimerView
+                    onAccept={onDisclaimerAccepted} />
+            );
+        } else if (!wallets || wallets.length == 0) {
             return <EmptyWalletHint/>;
         } else if (currentError) {
             return <ErrorView error={currentError} onClick={onRetryClicked}/>;
@@ -141,6 +155,11 @@ export const HomePage = () => {
                             onInfoClicked={onInfoClicked}/>
 
                         {renderTable()}
+
+                        <InfoModal
+                            isOpen={isInfoShown}
+                            onClose={() => setInfoShown(false)}
+                        />
                     </div>
                 </div>
             );

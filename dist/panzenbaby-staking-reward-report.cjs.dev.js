@@ -127,12 +127,12 @@ const WalletItem = props => {
 };
 
 const {
-  Components: Components$5
+  Components: Components$7
 } = globalThis.payvo;
 const {
   Card,
-  Button: Button$2
-} = Components$5;
+  Button: Button$3
+} = Components$7;
 const Header = props => {
   const [selectedYear, setSelectedYear] = React.useState(props.selectedYear);
   const [walletActions, setWalletActions] = React.useState();
@@ -203,15 +203,15 @@ const Header = props => {
       className: "flex flex-1 mr-4"
     }, /*#__PURE__*/React__default["default"].createElement("div", {
       className: "flex flex-row"
-    }, /*#__PURE__*/React__default["default"].createElement(Button$2, {
+    }, /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-4 mr-2",
       icon: "ArrowRotateLeft",
       onClick: props.onRetryClicked
-    }), /*#__PURE__*/React__default["default"].createElement(Button$2, {
+    }), /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-2 mr-2",
       icon: "ArrowUpTurnBracket",
       onClick: props.onExportClicked
-    }), /*#__PURE__*/React__default["default"].createElement(Button$2, {
+    }), /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-2 mr-4",
       icon: "CircleInfo",
       onClick: props.onInfoClicked
@@ -244,7 +244,8 @@ const Header = props => {
 };
 
 const Keys = {
-  STORE_ADDRESS: 'store_address'
+  STORE_ADDRESS: 'store_address',
+  DISCLAIMER_ACCEPTED: 'disclaimer_accepted'
 };
 
 const ARK_API_URL = 'https://api.ark.io/api';
@@ -254,14 +255,14 @@ const ARK_EXPLORER_TRANSACTIONS_PATH = '/transaction/';
 const ARK_EXPLORER_SENDER_PATH = '/wallets/';
 
 const {
-  Components: Components$4
+  Components: Components$6
 } = globalThis.payvo;
 const {
   TableCell,
   TableRow,
-  Link: Link$1,
+  Link: Link$2,
   Icon
-} = Components$4;
+} = Components$6;
 // TODO format with right language
 const TransactionListItem = props => {
   const value = props.transaction.amount * props.transaction.price.close / tokenValueFactor;
@@ -287,14 +288,14 @@ const TransactionListItem = props => {
   }, date.toLocaleDateString(), " ", date.toLocaleTimeString())), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center",
     isCompact: true
-  }, /*#__PURE__*/React__default["default"].createElement(Link$1, {
+  }, /*#__PURE__*/React__default["default"].createElement(Link$2, {
     to: senderExplorerUrl,
     showExternalIcon: false,
     isExternal: true
   }, props.transaction.senderName)), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center",
     isCompact: true
-  }, /*#__PURE__*/React__default["default"].createElement(Link$1, {
+  }, /*#__PURE__*/React__default["default"].createElement(Link$2, {
     to: transactionExplorerUrl,
     showExternalIcon: false,
     isExternal: true
@@ -309,11 +310,11 @@ const TransactionListItem = props => {
 };
 
 const {
-  Components: Components$3
+  Components: Components$5
 } = globalThis.payvo;
 const {
   Table
-} = Components$3;
+} = Components$5;
 const columns = [{
   Header: 'Amount',
   accessor: 'amount',
@@ -354,19 +355,19 @@ const RewardTable = props => {
 };
 
 const {
-  Components: Components$2
+  Components: Components$4
 } = globalThis.payvo;
 const {
-  Button: Button$1
-} = Components$2;
+  Button: Button$2
+} = Components$4;
 const ErrorView = props => {
   return /*#__PURE__*/React__default["default"].createElement("div", {
     className: "relative flex flex-col flex-1 justify-center items-center rounded-lg bg-theme-feature"
   }, /*#__PURE__*/React__default["default"].createElement("span", {
-    className: "font-bold"
+    className: "text-2xl font-bold"
   }, "Error"), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "font-bold text-red mt-6 mb-6"
-  }, props.error.message), /*#__PURE__*/React__default["default"].createElement(Button$1, {
+  }, props.error.message), /*#__PURE__*/React__default["default"].createElement(Button$2, {
     variant: "danger",
     className: "ContactAll__CreateButton justify-end",
     onClick: props.onClick
@@ -374,12 +375,12 @@ const ErrorView = props => {
 };
 
 const {
-  Components: Components$1
+  Components: Components$3
 } = globalThis.payvo;
 const {
-  Button,
-  Link
-} = Components$1;
+  Button: Button$1,
+  Link: Link$1
+} = Components$3;
 const EmptyWalletHint = props => {
   const context = useWalletContext();
   return /*#__PURE__*/React__default["default"].createElement("div", {
@@ -388,13 +389,13 @@ const EmptyWalletHint = props => {
     className: "flex flex-1 flex-col items-center"
   }, /*#__PURE__*/React__default["default"].createElement("span", null, "Your profile has no ARK wallet so far. Please import a wallet or create a new one."), /*#__PURE__*/React__default["default"].createElement("div", {
     className: "mt-4 flex-row justify-center items-stretch"
-  }, /*#__PURE__*/React__default["default"].createElement(Link, {
+  }, /*#__PURE__*/React__default["default"].createElement(Link$1, {
     className: "mr-3",
     to: `/profiles/${context.api.profile().id()}/wallets/import`
-  }, /*#__PURE__*/React__default["default"].createElement(Button, null, "Import")), /*#__PURE__*/React__default["default"].createElement(Link, {
+  }, /*#__PURE__*/React__default["default"].createElement(Button$1, null, "Import")), /*#__PURE__*/React__default["default"].createElement(Link$1, {
     className: "ml-3",
     to: `/profiles/${context.api.profile().id()}/wallets/create`
-  }, /*#__PURE__*/React__default["default"].createElement(Button, {
+  }, /*#__PURE__*/React__default["default"].createElement(Button$1, {
     variant: "secondary"
   }, "Create")))));
 };
@@ -429,6 +430,50 @@ const exportTransactions = (api, wallet, year, transactions) => {
 };
 
 const {
+  Components: Components$2
+} = globalThis.payvo;
+const {
+  Modal,
+  Link
+} = Components$2;
+const InfoModal = props => {
+  const apiUrl = 'https://min-api.cryptocompare.com';
+  return /*#__PURE__*/React__default["default"].createElement(Modal, {
+    isOpen: props.isOpen,
+    title: 'Info',
+    onClose: props.onClose
+  }, /*#__PURE__*/React__default["default"].createElement("span", null, "This plugin uses the public REST Api from "), /*#__PURE__*/React__default["default"].createElement(Link, {
+    to: apiUrl,
+    showExternalIcon: false,
+    isExternal: true
+  }, apiUrl), /*#__PURE__*/React__default["default"].createElement("span", null, " to get the price of each transaction. The displayed price is the close price of the day the transaction has been proceeded."));
+};
+
+const {
+  Components: Components$1
+} = globalThis.payvo;
+const {
+  Button
+} = Components$1;
+const DisclaimerView = props => {
+  const title = 'Disclaimer';
+  const message = 'The information presented by this plugin has been prepared for informational purposes only, and is not intended to provide, and should not be relied on for ' + 'tax, legal or accounting advice.';
+  return /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex m-auto max-w-lg flex-col justify-center"
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
+    className: "text-2xl font-bold"
+  }, title), /*#__PURE__*/React__default["default"].createElement("span", {
+    className: "mt-4"
+  }, message), /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex flex-row mt-6 justify-end"
+  }, /*#__PURE__*/React__default["default"].createElement(Button, {
+    variant: "primary",
+    className: "ContactAll__CreateButton justify-end",
+    onClick: props.onAccept
+  }, "Accept")));
+};
+
+const {
   Components
 } = globalThis.payvo;
 const {
@@ -442,6 +487,10 @@ const HomePage = () => {
   const [availableYears, setAvailableYears] = React.useState();
   const [summary, setSummary] = React.useState();
   const [myStakingRewards, setMyStakingRewards] = React.useState(new Map());
+  const [isInfoShown, setInfoShown] = React.useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = React.useState(() => {
+    return context.api.store().data().get(Keys.DISCLAIMER_ACCEPTED) === true;
+  });
   const [wallets] = React.useState(() => context.api.profile().wallets().filter(wallet => wallet.data.COIN === 'ARK' && wallet.data.NETWORK === 'ark.mainnet').map(wallet => {
     return createWallet(wallet);
   }));
@@ -461,13 +510,6 @@ const HomePage = () => {
       return result;
     }
   });
-
-  const onWalletSelected = wallet => {
-    context.api.store().data().set(Keys.STORE_ADDRESS, wallet.address);
-    context.api.store().persist();
-    setSelectedWallet(wallet);
-  };
-
   React.useEffect(() => {
     const transactions = myStakingRewards.get(selectedYear);
 
@@ -488,6 +530,20 @@ const HomePage = () => {
       });
     }
   }, [myStakingRewards, selectedYear]);
+  React.useEffect(() => {
+    loadTransactions();
+  }, [selectedWallet]);
+
+  const onWalletSelected = wallet => {
+    context.api.store().data().set(Keys.STORE_ADDRESS, wallet.address);
+    context.api.store().persist();
+    setSelectedWallet(wallet);
+  };
+
+  const onDisclaimerAccepted = () => {
+    setDisclaimerAccepted(true);
+    context.api.store().data().set(Keys.DISCLAIMER_ACCEPTED, true);
+  };
 
   const loadTransactions = () => {
     setIsLoading(true);
@@ -514,12 +570,8 @@ const HomePage = () => {
   };
 
   const onInfoClicked = () => {
-    console.log('onInfoClicked'); // TODO
+    setInfoShown(true);
   };
-
-  React.useEffect(() => {
-    loadTransactions();
-  }, [selectedWallet]);
 
   const renderTable = () => {
     if (isLoading) {
@@ -536,7 +588,11 @@ const HomePage = () => {
   };
 
   const renderContent = () => {
-    if (!wallets || wallets.length == 0) {
+    if (!disclaimerAccepted) {
+      return /*#__PURE__*/React__default["default"].createElement(DisclaimerView, {
+        onAccept: onDisclaimerAccepted
+      });
+    } else if (!wallets || wallets.length == 0) {
       return /*#__PURE__*/React__default["default"].createElement(EmptyWalletHint, null);
     } else if (currentError) {
       return /*#__PURE__*/React__default["default"].createElement(ErrorView, {
@@ -560,7 +616,10 @@ const HomePage = () => {
         onRetryClicked: onRetryClicked,
         onExportClicked: onExportClicked,
         onInfoClicked: onInfoClicked
-      }), renderTable()));
+      }), renderTable(), /*#__PURE__*/React__default["default"].createElement(InfoModal, {
+        isOpen: isInfoShown,
+        onClose: () => setInfoShown(false)
+      })));
     }
   };
 
