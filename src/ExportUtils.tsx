@@ -10,7 +10,6 @@ export const exportTransactions = (api: any, wallet: Wallet, year: number, trans
     const rows = [];
     const currency = transactions[0].price.currency;
 
-    // TODO i18n
     const amount = 'amount';
     const value = 'value';
     const date = 'date';
@@ -20,7 +19,7 @@ export const exportTransactions = (api: any, wallet: Wallet, year: number, trans
     rows.push(header);
 
     transactions.forEach((transaction) => {
-        const language = 'en'; // TODO how to get token?
+        const language = 'en'; // TODO how to get language?
         rows.push(buildExportRow(transaction, wallet.coin, language));
     });
 

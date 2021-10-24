@@ -129,15 +129,15 @@ export default class RemoteDataStore {
 
     /**
      * Load historical prices for the given transactions.
-     * @param {Wallet }wallet the wallet where the transactions are received.
+     * @param {string} currency the currency which the price if requested of.
+     * @param {Wallet} wallet the wallet where the transactions are received.
      * @param {Transaction[]} transactions the transactions which historical prices are requested.
      */
-    async loadPrices(wallet: Wallet, transactions: Transaction[]): Promise<Price[]> {
+    async loadPrices(currency: string, wallet: Wallet, transactions: Transaction[]): Promise<Price[]> {
         const prices: Price[] = [];
 
         try {
             if (transactions.length > 0) {
-                const currency = 'EUR'; // TODO get current currency of payvo api: api.exchangeCurrency
                 const lastTransactionTime = transactions[transactions.length - 1].date;
                 const fromTime = Math.round(transactions[0].date);
                 const query = {

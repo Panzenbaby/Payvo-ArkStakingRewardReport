@@ -108,9 +108,6 @@ const WalletItem = props => {
   const avatar = props.wallet.avatar;
   const balance = props.wallet.balance;
   const coin = props.wallet.coin;
-  const context = useWalletContext(); // TODO this is not the right way to get language of the payvo wallet. I need to check this
-
-  const [language] = React.useState(() => context.api.profile().language);
   return /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex items-center space-x-4 py-4"
   }, /*#__PURE__*/React__default["default"].createElement(Avatar, {
@@ -123,7 +120,7 @@ const WalletItem = props => {
     className: "truncate text-theme-secondary-500 dark:text-theme-secondary-700 font-semibold"
   }, address), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "truncate text-theme-secondary-500 dark:text-theme-secondary-700 font-semibold"
-  }, formatCurrency(balance, coin, language))));
+  }, formatCurrency(balance, coin, props.language))));
 };
 
 const {
@@ -227,7 +224,8 @@ const Header = props => {
     actions: walletActions,
     onSelect: onWalletSelected
   }, /*#__PURE__*/React__default["default"].createElement(WalletItem, {
-    wallet: props.selectedWallet
+    wallet: props.selectedWallet,
+    language: props.selectedLanguage
   })), /*#__PURE__*/React__default["default"].createElement(Card, {
     className: "flex ml-4",
     actions: yearOptions,
@@ -261,31 +259,35 @@ const {
   TableCell,
   TableRow,
   Link: Link$2,
-  Icon
+  Icon,
+  Tooltip
 } = Components$6;
-// TODO format with right language
 const TransactionListItem = props => {
   const value = props.transaction.amount * props.transaction.price.close / tokenValueFactor;
   const transactionExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_TRANSACTIONS_PATH + props.transaction.transactionId;
   const senderExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_SENDER_PATH + props.transaction.senderPublicKey;
   const idSnapShot = props.transaction.transactionId.substring(0, 9) + '...';
   const date = new Date(props.transaction.date * 1000);
+  const closePriceTip = formatCurrency(props.transaction.price.close, props.transaction.price.currency, props.language) + ' / ' + props.wallet.coin;
   return /*#__PURE__*/React__default["default"].createElement(TableRow, null, /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
   }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "justify-center whitespace-nowrap"
-  }, formatCurrency(props.transaction.amount, props.wallet.coin))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
+  }, formatCurrency(props.transaction.amount, props.wallet.coin, props.language))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
+  }, /*#__PURE__*/React__default["default"].createElement(Tooltip, {
+    content: closePriceTip,
+    className: "mb-1"
   }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "justify-center whitespace-nowrap"
-  }, formatCurrency(value, props.transaction.price.currency))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
+  }, formatCurrency(value, props.transaction.price.currency, props.language)))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
   }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "flex items-center  whitespace-nowrap"
-  }, date.toLocaleDateString(), " ", date.toLocaleTimeString())), /*#__PURE__*/React__default["default"].createElement(TableCell, {
+  }, date.toLocaleDateString(props.language), " ", date.toLocaleTimeString(props.language))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center",
     isCompact: true
   }, /*#__PURE__*/React__default["default"].createElement(Link$2, {
@@ -348,6 +350,7 @@ const RewardTable = props => {
       columns: columns,
       data: currentData
     }, transaction => /*#__PURE__*/React__default["default"].createElement(TransactionListItem, {
+      language: props.language,
       wallet: props.wallet,
       transaction: transaction
     })));
@@ -406,8 +409,7 @@ const exportTransactions = (api, wallet, year, transactions) => {
   }
 
   const rows = [];
-  const currency = transactions[0].price.currency; // TODO i18n
-
+  const currency = transactions[0].price.currency;
   const amount = 'amount';
   const value = 'value';
   const date = 'date';
@@ -415,7 +417,7 @@ const exportTransactions = (api, wallet, year, transactions) => {
   const header = `${wallet.coin} ${amount} | ${currency} ${value} | ${date} | ${transactionId}`;
   rows.push(header);
   transactions.forEach(transaction => {
-    const language = 'en'; // TODO how to get token?
+    const language = 'en'; // TODO how to get language?
 
     rows.push(buildExportRow(transaction, wallet.coin, language));
   });
@@ -480,7 +482,10 @@ const {
   Spinner
 } = Components;
 const HomePage = () => {
-  const context = useWalletContext();
+  const context = useWalletContext(); // TODO read those from the api or create a own settings fort ist
+
+  const [selectedLanguage] = React.useState('en');
+  const [selectedCurrency] = React.useState('EUR');
   const [isLoading, setIsLoading] = React.useState(false);
   const [currentError, setError] = React.useState();
   const [selectedYear, setSelectedYear] = React.useState(() => new Date().getFullYear());
@@ -547,7 +552,7 @@ const HomePage = () => {
 
   const loadTransactions = () => {
     setIsLoading(true);
-    context.repository.generateStakingRewardReport(selectedWallet).then(reportMap => {
+    context.repository.generateStakingRewardReport(selectedCurrency, selectedWallet).then(reportMap => {
       setMyStakingRewards(reportMap);
       setAvailableYears(Array.from(reportMap.keys()));
       setIsLoading(false);
@@ -580,6 +585,7 @@ const HomePage = () => {
       }, /*#__PURE__*/React__default["default"].createElement(Spinner, null));
     } else {
       return /*#__PURE__*/React__default["default"].createElement(RewardTable, {
+        language: selectedLanguage,
         wallet: selectedWallet,
         selectedYear: selectedYear,
         rewardData: myStakingRewards
@@ -605,6 +611,7 @@ const HomePage = () => {
       }, /*#__PURE__*/React__default["default"].createElement("div", {
         className: "flext flex-1 w-full"
       }, /*#__PURE__*/React__default["default"].createElement(Header, {
+        selectedLanguage: selectedLanguage,
         selectedWallet: selectedWallet,
         wallets: wallets,
         onWalletSelected: onWalletSelected,
@@ -753,18 +760,17 @@ class RemoteDataStore {
   }
   /**
    * Load historical prices for the given transactions.
-   * @param {Wallet }wallet the wallet where the transactions are received.
+   * @param {string} currency the currency which the price if requested of.
+   * @param {Wallet} wallet the wallet where the transactions are received.
    * @param {Transaction[]} transactions the transactions which historical prices are requested.
    */
 
 
-  async loadPrices(wallet, transactions) {
+  async loadPrices(currency, wallet, transactions) {
     const prices = [];
 
     try {
       if (transactions.length > 0) {
-        const currency = 'EUR'; // TODO get current currency of payvo api: api.exchangeCurrency
-
         const lastTransactionTime = transactions[transactions.length - 1].date;
         const fromTime = Math.round(transactions[0].date);
         const query = {
@@ -835,11 +841,12 @@ class Repository {
   }
   /**
    * Generates a all time staking reward report for the given wallet.
+   * @param {string} currency the currency which will be used to determine the price.
    * @param {Wallet} wallet the current selected wallet which the report will be generated for.
    */
 
 
-  async generateStakingRewardReport(wallet) {
+  async generateStakingRewardReport(currency, wallet) {
     const myTransactions = await this.remoteDataStore.getReceivedTransactions(wallet);
     const myVotes = await this.remoteDataStore.getVotes(wallet);
     myTransactions.sort(this.dateComparator);
@@ -859,7 +866,7 @@ class Repository {
     for (const entry of transactionsMap.entries()) {
       const year = entry[0];
       const currentTransactions = entry[1];
-      const prices = await this.remoteDataStore.loadPrices(wallet, currentTransactions);
+      const prices = await this.remoteDataStore.loadPrices(currency, wallet, currentTransactions);
       await this.applyPrices(currentTransactions, prices);
       const rewards = this.findStakingRewards(currentTransactions, myVotes);
       rewards.sort(this.dateComparatorDesc);

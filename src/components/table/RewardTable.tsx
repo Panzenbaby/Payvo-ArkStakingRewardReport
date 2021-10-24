@@ -32,6 +32,7 @@ const columns = [
 ];
 
 interface RewardTableProps {
+    language: string,
     selectedYear: number,
     wallet: Wallet,
     rewardData: Map<number, Transaction[]>
@@ -50,7 +51,7 @@ export const RewardTable = (props: RewardTableProps) => {
         return (
             <div className="mt-4 relative">
                 <Table columns={columns} data={currentData}>
-                    {(transaction: Transaction) => <TransactionListItem wallet={props.wallet} transaction={transaction}/>}
+                    {(transaction: Transaction) => <TransactionListItem language={props.language} wallet={props.wallet} transaction={transaction}/>}
                 </Table>
             </div>
         );

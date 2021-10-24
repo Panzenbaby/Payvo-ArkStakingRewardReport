@@ -17,6 +17,10 @@ const {Spinner} = Components;
 export const HomePage = () => {
     const context = useWalletContext();
 
+    // TODO read those from the api or create a own settings fort ist
+    const [selectedLanguage] = useState('en');
+    const [selectedCurrency] = useState('EUR');
+
     const [isLoading, setIsLoading] = useState(false);
     const [currentError, setError] = useState();
     const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
@@ -87,7 +91,7 @@ export const HomePage = () => {
 
     const loadTransactions = () => {
         setIsLoading(true);
-        context.repository.generateStakingRewardReport(selectedWallet).then((reportMap: Map<number, Transaction[]>) => {
+        context.repository.generateStakingRewardReport(selectedCurrency, selectedWallet).then((reportMap: Map<number, Transaction[]>) => {
             setMyStakingRewards(reportMap);
             setAvailableYears(Array.from(reportMap.keys()));
             setIsLoading(false);
@@ -122,7 +126,7 @@ export const HomePage = () => {
             );
         } else {
             return (
-                <RewardTable wallet={selectedWallet} selectedYear={selectedYear} rewardData={myStakingRewards}/>
+                <RewardTable language={selectedLanguage} wallet={selectedWallet} selectedYear={selectedYear} rewardData={myStakingRewards}/>
             );
         }
     };
@@ -142,6 +146,7 @@ export const HomePage = () => {
                 <div className="flex ml-6 mr-6 flex-row w-full">
                     <div className="flext flex-1 w-full">
                         <Header
+                            selectedLanguage={selectedLanguage}
                             selectedWallet={selectedWallet}
                             wallets={wallets}
                             onWalletSelected={onWalletSelected}

@@ -24,9 +24,10 @@ export default class Repository {
 
     /**
      * Generates a all time staking reward report for the given wallet.
+     * @param {string} currency the currency which will be used to determine the price.
      * @param {Wallet} wallet the current selected wallet which the report will be generated for.
      */
-    async generateStakingRewardReport(wallet: Wallet): Promise<Map<number, Transaction[]>> {
+    async generateStakingRewardReport(currency: string, wallet: Wallet): Promise<Map<number, Transaction[]>> {
         const myTransactions = await this.remoteDataStore.getReceivedTransactions(wallet);
         const myVotes = await this.remoteDataStore.getVotes(wallet);
 
@@ -47,7 +48,7 @@ export default class Repository {
             const year: number = entry[0];
             const currentTransactions: Transaction[] = entry[1];
 
-            const prices = await this.remoteDataStore.loadPrices(wallet, currentTransactions);
+            const prices = await this.remoteDataStore.loadPrices(currency, wallet, currentTransactions);
             await this.applyPrices(currentTransactions, prices);
 
             const rewards = this.findStakingRewards(currentTransactions, myVotes);

@@ -1,5 +1,6 @@
 import { Transaction, Wallet } from '../../Types';
 interface TransactionListItemProps {
+    language: string;
     wallet: Wallet;
     transaction: Transaction;
 }

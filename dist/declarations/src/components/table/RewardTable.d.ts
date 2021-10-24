@@ -1,5 +1,6 @@
 import { Transaction, Wallet } from '../../Types';
 interface RewardTableProps {
+    language: string;
     selectedYear: number;
     wallet: Wallet;
     rewardData: Map<number, Transaction[]>;

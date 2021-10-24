@@ -25,10 +25,11 @@ export default class RemoteDataStore {
     getDelegates(delegateIds: string[]): Promise<Map<string, string>>;
     /**
      * Load historical prices for the given transactions.
-     * @param {Wallet }wallet the wallet where the transactions are received.
+     * @param {string} currency the currency which the price if requested of.
+     * @param {Wallet} wallet the wallet where the transactions are received.
      * @param {Transaction[]} transactions the transactions which historical prices are requested.
      */
-    loadPrices(wallet: Wallet, transactions: Transaction[]): Promise<Price[]>;
+    loadPrices(currency: string, wallet: Wallet, transactions: Transaction[]): Promise<Price[]>;
     /**
      * Will call the ARK REST api for the given path and loads all pages until the first page where data is empty.
      * In case of "to many requests" error, this methode will do a timeout of 10 seconds before it will proceed.

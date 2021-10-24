@@ -13,9 +13,10 @@ export default class Repository {
     constructor(walletApi: any);
     /**
      * Generates a all time staking reward report for the given wallet.
+     * @param {string} currency the currency which will be used to determine the price.
      * @param {Wallet} wallet the current selected wallet which the report will be generated for.
      */
-    generateStakingRewardReport(wallet: Wallet): Promise<Map<number, Transaction[]>>;
+    generateStakingRewardReport(currency: string, wallet: Wallet): Promise<Map<number, Transaction[]>>;
     /**
      * Apply the close price of prices to the the transactions.
      * @param {Transaction[]} transactions

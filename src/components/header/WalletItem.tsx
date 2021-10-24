@@ -5,6 +5,7 @@ import {formatCurrency} from '../../utils';
 import {useWalletContext} from '../../provider/WalletProvider';
 
 interface WalletItemProps {
+    language: string,
     wallet: Wallet,
 }
 
@@ -14,11 +15,6 @@ export const WalletItem = (props: WalletItemProps) => {
     const avatar = props.wallet.avatar;
     const balance = props.wallet.balance;
     const coin = props.wallet.coin;
-
-    const context = useWalletContext();
-
-    // TODO this is not the right way to get language of the payvo wallet. I need to check this
-    const [language] = useState(() => context.api.profile().language);
 
     return (
         <div
@@ -32,7 +28,7 @@ export const WalletItem = (props: WalletItemProps) => {
                     {address}
                 </span>
                 <span className="truncate text-theme-secondary-500 dark:text-theme-secondary-700 font-semibold">
-                    {formatCurrency(balance, coin, language)}
+                    {formatCurrency(balance, coin, props.language)}
                 </span>
             </div>
         </div>

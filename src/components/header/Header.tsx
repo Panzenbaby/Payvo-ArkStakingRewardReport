@@ -9,6 +9,7 @@ const {Components} = globalThis.payvo;
 const {Card, Button} = Components;
 
 interface HeaderProps {
+    selectedLanguage: string,
     selectedWallet: Wallet;
     wallets: Wallet[];
     onWalletSelected: (Wallet) => any;
@@ -116,7 +117,7 @@ export const Header = (props: HeaderProps) => {
                     actions={walletActions}
                     onSelect={onWalletSelected}>
 
-                    <WalletItem wallet={props.selectedWallet}/>
+                    <WalletItem wallet={props.selectedWallet} language={props.selectedLanguage}/>
                 </Card>
 
                 <Card
