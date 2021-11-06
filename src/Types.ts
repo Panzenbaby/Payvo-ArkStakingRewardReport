@@ -41,6 +41,10 @@ export interface Summary {
     currency: string;
 }
 
+export interface ExecutePermission {
+    canceled: boolean
+}
+
 export const createWallet = (apiWallet) => {
     return {
         address: apiWallet.data.ADDRESS,

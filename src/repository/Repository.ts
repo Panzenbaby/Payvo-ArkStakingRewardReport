@@ -1,5 +1,5 @@
 import RemoteDataStore from './RemoteDataStore';
-import {Price, Transaction, Vote, Wallet} from '../Types';
+import {ExecutePermission, Price, Transaction, Vote, Wallet} from '../Types';
 import {secondsOfDay} from '../utils';
 
 /**
@@ -24,12 +24,32 @@ export default class Repository {
 
     /**
      * Generates a all time staking reward report for the given wallet.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
      * @param {string} currency the currency which will be used to determine the price.
      * @param {Wallet} wallet the current selected wallet which the report will be generated for.
      */
-    async generateStakingRewardReport(currency: string, wallet: Wallet): Promise<Map<number, Transaction[]>> {
-        const myTransactions = await this.remoteDataStore.getReceivedTransactions(wallet);
-        const myVotes = await this.remoteDataStore.getVotes(wallet);
+    async generateStakingRewardReport(executePermission: ExecutePermission, currency: string, wallet: Wallet): Promise<Map<number, Transaction[]>> {
+        try {
+            const result = await this.internalGenerateStakingRewardReport(executePermission, currency, wallet);
+            if (!executePermission.canceled) {
+                return result;
+            }
+        } catch (error) {
+            if (!executePermission.canceled) {
+                throw error;
+            }
+        }
+    }
+
+    /**
+     * Generates a all time staking reward report for the given wallet.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
+     * @param {string} currency the currency which will be used to determine the price.
+     * @param {Wallet} wallet the current selected wallet which the report will be generated for.
+     */
+    private async internalGenerateStakingRewardReport(executePermission: ExecutePermission, currency: string, wallet: Wallet): Promise<Map<number, Transaction[]>> {
+        const myTransactions = await this.remoteDataStore.getReceivedTransactions(executePermission, wallet);
+        const myVotes = await this.remoteDataStore.getVotes(executePermission, wallet);
 
         myTransactions.sort(this.dateComparator);
         myVotes.sort(this.dateComparator);
@@ -107,7 +127,7 @@ export default class Repository {
      * @param {number} since The start time of the requested period. The up-vote-time of the used vote period is greater or equal this start time.
      * @return {{result: Transaction[], downVoteTime: number}} the filtered transactions and the downVoteTime of the used vote period (or now if the period isn't over).
      */
-    private findStakingRewardsSince(transactions: Transaction[], votes: Vote[], since: number): {result: Transaction[], downVoteTime: number} {
+    private findStakingRewardsSince(transactions: Transaction[], votes: Vote[], since: number): { result: Transaction[], downVoteTime: number } {
         const upVote = votes.find((vote) => !vote.isDownVote && since < vote.date);
         const downVote = votes.find((vote) => vote.isDownVote && vote.delegatePublicKey === upVote.delegatePublicKey);
 

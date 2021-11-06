@@ -1,4 +1,4 @@
-import { Transaction, Wallet } from '../Types';
+import { ExecutePermission, Transaction, Wallet } from '../Types';
 /**
  * This class handles all of the business logic. It is the interface from the plugin to the data.
  */
@@ -13,10 +13,18 @@ export default class Repository {
     constructor(walletApi: any);
     /**
      * Generates a all time staking reward report for the given wallet.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
      * @param {string} currency the currency which will be used to determine the price.
      * @param {Wallet} wallet the current selected wallet which the report will be generated for.
      */
-    generateStakingRewardReport(currency: string, wallet: Wallet): Promise<Map<number, Transaction[]>>;
+    generateStakingRewardReport(executePermission: ExecutePermission, currency: string, wallet: Wallet): Promise<Map<number, Transaction[]>>;
+    /**
+     * Generates a all time staking reward report for the given wallet.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
+     * @param {string} currency the currency which will be used to determine the price.
+     * @param {Wallet} wallet the current selected wallet which the report will be generated for.
+     */
+    private internalGenerateStakingRewardReport;
     /**
      * Apply the close price of prices to the the transactions.
      * @param {Transaction[]} transactions

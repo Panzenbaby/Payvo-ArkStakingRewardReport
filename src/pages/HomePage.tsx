@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {useWalletContext} from '../provider/WalletProvider';
-import {createWallet, Transaction, Wallet} from '../Types';
+import {createWallet, ExecutePermission, Transaction, Wallet} from '../Types';
 import Header from '../components/header/Header';
 import {Keys} from '../Keys';
 import RewardTable from '../components/table/RewardTable';
@@ -15,6 +15,7 @@ const {Components} = globalThis.payvo;
 const {Spinner} = Components;
 
 export const HomePage = () => {
+    let executePermission: ExecutePermission = {canceled: false};
     const context = useWalletContext();
 
     // TODO read those from the api or create a own settings fort ist
@@ -91,7 +92,10 @@ export const HomePage = () => {
 
     const loadTransactions = () => {
         setIsLoading(true);
-        context.repository.generateStakingRewardReport(selectedCurrency, selectedWallet).then((reportMap: Map<number, Transaction[]>) => {
+
+        executePermission.canceled = true;
+        executePermission = {canceled: false};
+        context.repository.generateStakingRewardReport(executePermission, selectedCurrency, selectedWallet).then((reportMap: Map<number, Transaction[]>) => {
             setMyStakingRewards(reportMap);
             setAvailableYears(Array.from(reportMap.keys()));
             setIsLoading(false);

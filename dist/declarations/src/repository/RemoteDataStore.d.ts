@@ -1,4 +1,4 @@
-import { Price, Transaction, Vote, Wallet } from '../Types';
+import { ExecutePermission, Price, Transaction, Vote, Wallet } from '../Types';
 /**
  * This class is our data source. It is the interface to each used REST Api.
  */
@@ -10,14 +10,16 @@ export default class RemoteDataStore {
     constructor(walletApi: any);
     /**
      * Loads all received transactions for the given wallet.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
      * @param {Wallet} wallet the wallet for which all transactions should be loaded.
      */
-    getReceivedTransactions(wallet: Wallet): Promise<Transaction[]>;
+    getReceivedTransactions(executePermission: ExecutePermission, wallet: Wallet): Promise<Transaction[]>;
     /**
      * Loads all votes which have been made from the given wallet.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
      * @param {Wallet} wallet the wallet for which all votes should be loaded.
      */
-    getVotes(wallet: Wallet): Promise<Vote[]>;
+    getVotes(executePermission: ExecutePermission, wallet: Wallet): Promise<Vote[]>;
     /**
      * Load delegate information for each delegate id in the given list.
      * @param {string[]} delegateIds a list of ids from delegates.
@@ -33,6 +35,7 @@ export default class RemoteDataStore {
     /**
      * Will call the ARK REST api for the given path and loads all pages until the first page where data is empty.
      * In case of "to many requests" error, this methode will do a timeout of 10 seconds before it will proceed.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
      * @param {string} requestPath the path of the requested endpoint.
      */
     private getAllPagesOf;

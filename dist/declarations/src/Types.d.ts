@@ -34,6 +34,9 @@ export interface Summary {
     value: number;
     currency: string;
 }
+export interface ExecutePermission {
+    canceled: boolean;
+}
 export declare const createWallet: (apiWallet: any) => {
     address: any;
     alias: any;

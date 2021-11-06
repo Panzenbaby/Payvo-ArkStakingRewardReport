@@ -482,6 +482,9 @@ const {
   Spinner
 } = Components;
 const HomePage = () => {
+  let executePermission = {
+    canceled: false
+  };
   const context = useWalletContext(); // TODO read those from the api or create a own settings fort ist
 
   const [selectedLanguage] = React.useState('en');
@@ -552,7 +555,11 @@ const HomePage = () => {
 
   const loadTransactions = () => {
     setIsLoading(true);
-    context.repository.generateStakingRewardReport(selectedCurrency, selectedWallet).then(reportMap => {
+    executePermission.canceled = true;
+    executePermission = {
+      canceled: false
+    };
+    context.repository.generateStakingRewardReport(executePermission, selectedCurrency, selectedWallet).then(reportMap => {
       setMyStakingRewards(reportMap);
       setAvailableYears(Array.from(reportMap.keys()));
       setIsLoading(false);
@@ -646,14 +653,15 @@ class RemoteDataStore {
   }
   /**
    * Loads all received transactions for the given wallet.
+   * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
    * @param {Wallet} wallet the wallet for which all transactions should be loaded.
    */
 
 
-  async getReceivedTransactions(wallet) {
+  async getReceivedTransactions(executePermission, wallet) {
     const address = wallet.address;
     const requestPath = `/wallets/${address}/transactions/received?limit=100`;
-    const resultList = await this.getAllPagesOf(requestPath);
+    const resultList = await this.getAllPagesOf(executePermission, requestPath);
     const result = [];
 
     try {
@@ -697,14 +705,15 @@ class RemoteDataStore {
   }
   /**
    * Loads all votes which have been made from the given wallet.
+   * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
    * @param {Wallet} wallet the wallet for which all votes should be loaded.
    */
 
 
-  async getVotes(wallet) {
+  async getVotes(executePermission, wallet) {
     const address = wallet.address;
     const path = `/wallets/${address}/votes?limit=100`;
-    const resultList = await this.getAllPagesOf(path);
+    const resultList = await this.getAllPagesOf(executePermission, path);
     const result = [];
 
     try {
@@ -797,25 +806,26 @@ class RemoteDataStore {
   /**
    * Will call the ARK REST api for the given path and loads all pages until the first page where data is empty.
    * In case of "to many requests" error, this methode will do a timeout of 10 seconds before it will proceed.
+   * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
    * @param {string} requestPath the path of the requested endpoint.
    */
 
 
-  async getAllPagesOf(requestPath) {
+  async getAllPagesOf(executePermission, requestPath) {
     const result = [];
     let page = 1;
     let isEmpty = true;
+    const date = Date.now();
 
     do {
-      // TODO handle TO MANY REQUESTS with a timeout of 10s
-      // TODO right now there is no info about a selected peer in the payvo api. if this changes we can use the peer instead of domain
       const url = ARK_API_URL + requestPath + `&page=${page}`;
       const requestResult = await this.walletApi.http().get(url);
       const response = requestResult.json();
       Array.prototype.push.apply(result, response.data);
       page++;
       isEmpty = !response || !response.data || response.data.length == 0;
-    } while (!isEmpty);
+      console.log(date);
+    } while (!executePermission.canceled && !isEmpty);
 
     return result;
   }
@@ -841,14 +851,36 @@ class Repository {
   }
   /**
    * Generates a all time staking reward report for the given wallet.
+   * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
    * @param {string} currency the currency which will be used to determine the price.
    * @param {Wallet} wallet the current selected wallet which the report will be generated for.
    */
 
 
-  async generateStakingRewardReport(currency, wallet) {
-    const myTransactions = await this.remoteDataStore.getReceivedTransactions(wallet);
-    const myVotes = await this.remoteDataStore.getVotes(wallet);
+  async generateStakingRewardReport(executePermission, currency, wallet) {
+    try {
+      const result = await this.internalGenerateStakingRewardReport(executePermission, currency, wallet);
+
+      if (!executePermission.canceled) {
+        return result;
+      }
+    } catch (error) {
+      if (!executePermission.canceled) {
+        throw error;
+      }
+    }
+  }
+  /**
+   * Generates a all time staking reward report for the given wallet.
+   * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
+   * @param {string} currency the currency which will be used to determine the price.
+   * @param {Wallet} wallet the current selected wallet which the report will be generated for.
+   */
+
+
+  async internalGenerateStakingRewardReport(executePermission, currency, wallet) {
+    const myTransactions = await this.remoteDataStore.getReceivedTransactions(executePermission, wallet);
+    const myVotes = await this.remoteDataStore.getVotes(executePermission, wallet);
     myTransactions.sort(this.dateComparator);
     myVotes.sort(this.dateComparator);
     const transactionsMap = new Map();

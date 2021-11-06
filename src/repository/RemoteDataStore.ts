@@ -1,4 +1,4 @@
-import {Price, Transaction, Vote, Wallet} from '../Types';
+import {ExecutePermission, Price, Transaction, Vote, Wallet} from '../Types';
 import {ARK_API_URL, PRICE_API_EP_URL} from '../Constants';
 import {getDaysSince} from '../utils';
 
@@ -17,12 +17,13 @@ export default class RemoteDataStore {
 
     /**
      * Loads all received transactions for the given wallet.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
      * @param {Wallet} wallet the wallet for which all transactions should be loaded.
      */
-    async getReceivedTransactions(wallet: Wallet): Promise<Transaction[]> {
+    async getReceivedTransactions(executePermission: ExecutePermission, wallet: Wallet): Promise<Transaction[]> {
         const address = wallet.address;
         const requestPath = `/wallets/${address}/transactions/received?limit=100`;
-        const resultList = await this.getAllPagesOf(requestPath);
+        const resultList = await this.getAllPagesOf(executePermission, requestPath);
 
         const result: Transaction[] = [];
         try {
@@ -65,12 +66,13 @@ export default class RemoteDataStore {
 
     /**
      * Loads all votes which have been made from the given wallet.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
      * @param {Wallet} wallet the wallet for which all votes should be loaded.
      */
-    async getVotes(wallet: Wallet) {
+    async getVotes(executePermission: ExecutePermission, wallet: Wallet) {
         const address = wallet.address;
         const path = `/wallets/${address}/votes?limit=100`;
-        const resultList = await this.getAllPagesOf(path);
+        const resultList = await this.getAllPagesOf(executePermission, path);
 
         const result: Vote[] = [];
         try {
@@ -166,16 +168,16 @@ export default class RemoteDataStore {
     /**
      * Will call the ARK REST api for the given path and loads all pages until the first page where data is empty.
      * In case of "to many requests" error, this methode will do a timeout of 10 seconds before it will proceed.
+     * @param {ExecutePermission} executePermission can be canceled to stop the execution of this request.
      * @param {string} requestPath the path of the requested endpoint.
      */
-    private async getAllPagesOf(requestPath): Promise<any> {
+    private async getAllPagesOf(executePermission: ExecutePermission, requestPath): Promise<any> {
         const result: any[] = [];
         let page: number = 1;
         let isEmpty: boolean = true;
 
+        const date = Date.now();
         do {
-            // TODO handle TO MANY REQUESTS with a timeout of 10s
-            // TODO right now there is no info about a selected peer in the payvo api. if this changes we can use the peer instead of domain
             const url = ARK_API_URL + requestPath + `&page=${page}`;
             const requestResult = await this.walletApi.http().get(url);
             const response = requestResult.json();
@@ -184,7 +186,8 @@ export default class RemoteDataStore {
             page++;
 
             isEmpty = !response || !response.data || response.data.length == 0;
-        } while (!isEmpty);
+            console.log(date);
+        } while (!executePermission.canceled && !isEmpty);
 
         return result;
     }
