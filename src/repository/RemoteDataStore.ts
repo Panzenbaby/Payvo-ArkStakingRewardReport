@@ -176,7 +176,6 @@ export default class RemoteDataStore {
         let page: number = 1;
         let isEmpty: boolean = true;
 
-        const date = Date.now();
         do {
             const url = ARK_API_URL + requestPath + `&page=${page}`;
             const requestResult = await this.walletApi.http().get(url);
@@ -186,7 +185,6 @@ export default class RemoteDataStore {
             page++;
 
             isEmpty = !response || !response.data || response.data.length == 0;
-            console.log(date);
         } while (!executePermission.canceled && !isEmpty);
 
         return result;

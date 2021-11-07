@@ -124,12 +124,12 @@ const WalletItem = props => {
 };
 
 const {
-  Components: Components$7
+  Components: Components$8
 } = globalThis.payvo;
 const {
   Card,
   Button: Button$3
-} = Components$7;
+} = Components$8;
 const Header = props => {
   const [selectedYear, setSelectedYear] = React.useState(props.selectedYear);
   const [walletActions, setWalletActions] = React.useState();
@@ -253,7 +253,7 @@ const ARK_EXPLORER_TRANSACTIONS_PATH = '/transaction/';
 const ARK_EXPLORER_SENDER_PATH = '/wallets/';
 
 const {
-  Components: Components$6
+  Components: Components$7
 } = globalThis.payvo;
 const {
   TableCell,
@@ -261,7 +261,7 @@ const {
   Link: Link$2,
   Icon,
   Tooltip
-} = Components$6;
+} = Components$7;
 const TransactionListItem = props => {
   const value = props.transaction.amount * props.transaction.price.close / tokenValueFactor;
   const transactionExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_TRANSACTIONS_PATH + props.transaction.transactionId;
@@ -312,11 +312,11 @@ const TransactionListItem = props => {
 };
 
 const {
-  Components: Components$5
+  Components: Components$6
 } = globalThis.payvo;
 const {
   Table
-} = Components$5;
+} = Components$6;
 const columns = [{
   Header: 'Amount',
   accessor: 'amount',
@@ -345,7 +345,7 @@ const RewardTable = props => {
     }, /*#__PURE__*/React__default["default"].createElement("span", null, "The report of the selected period is empty."));
   } else {
     return /*#__PURE__*/React__default["default"].createElement("div", {
-      className: "mt-4 relative"
+      className: "flex-1 mt-4 relative"
     }, /*#__PURE__*/React__default["default"].createElement(Table, {
       columns: columns,
       data: currentData
@@ -358,11 +358,11 @@ const RewardTable = props => {
 };
 
 const {
-  Components: Components$4
+  Components: Components$5
 } = globalThis.payvo;
 const {
   Button: Button$2
-} = Components$4;
+} = Components$5;
 const ErrorView = props => {
   return /*#__PURE__*/React__default["default"].createElement("div", {
     className: "relative flex flex-col flex-1 justify-center items-center rounded-lg bg-theme-feature"
@@ -378,12 +378,12 @@ const ErrorView = props => {
 };
 
 const {
-  Components: Components$3
+  Components: Components$4
 } = globalThis.payvo;
 const {
   Button: Button$1,
   Link: Link$1
-} = Components$3;
+} = Components$4;
 const EmptyWalletHint = props => {
   const context = useWalletContext();
   return /*#__PURE__*/React__default["default"].createElement("div", {
@@ -422,22 +422,16 @@ const exportTransactions = (api, wallet, year, transactions) => {
     rows.push(buildExportRow(transaction, wallet.coin, language));
   });
   const asString = rows.join('\n');
-  api.filesystem().askUserToSaveFile(asString).then(result => {
-    // TODO find a way to notify user
-    console.log('success');
-  }).catch(error => {
-    // TODO find a way to notify user
-    console.log(error.message);
-  });
+  return api.filesystem().askUserToSaveFile(asString);
 };
 
 const {
-  Components: Components$2
+  Components: Components$3
 } = globalThis.payvo;
 const {
   Modal,
   Link
-} = Components$2;
+} = Components$3;
 const InfoModal = props => {
   const apiUrl = 'https://min-api.cryptocompare.com';
   return /*#__PURE__*/React__default["default"].createElement(Modal, {
@@ -452,11 +446,11 @@ const InfoModal = props => {
 };
 
 const {
-  Components: Components$1
+  Components: Components$2
 } = globalThis.payvo;
 const {
   Button
-} = Components$1;
+} = Components$2;
 const DisclaimerView = props => {
   const title = 'Disclaimer';
   const message = 'The information presented by this plugin has been prepared for informational purposes only, and is not intended to provide, and should not be relied on for ' + 'tax, legal or accounting advice.';
@@ -475,6 +469,48 @@ const DisclaimerView = props => {
   }, "Accept")));
 };
 
+let State;
+
+(function (State) {
+  State[State["NONE"] = 0] = "NONE";
+  State[State["SUCCESS"] = 1] = "SUCCESS";
+  State[State["ERROR"] = 2] = "ERROR";
+})(State || (State = {}));
+
+const {
+  Components: Components$1
+} = globalThis.payvo;
+const {
+  Alert
+} = Components$1;
+const TIMEOUT = 5000;
+const Toast = props => {
+  const context = useWalletContext();
+  React.useEffect(() => {
+    if (props.state) {
+      context.api.timers().setTimeout(() => {
+        props.onDismiss();
+      }, TIMEOUT);
+    }
+  }, [props.state]);
+
+  if (props.state !== State.NONE) {
+    let variant = 'success';
+
+    if (props.state == State.ERROR) {
+      variant = 'danger';
+    }
+
+    return /*#__PURE__*/React__default["default"].createElement(Alert, {
+      className: "absolute bg-theme-secondary-800",
+      variant: variant,
+      title: props.message
+    });
+  }
+
+  return null;
+};
+
 const {
   Components
 } = globalThis.payvo;
@@ -491,6 +527,9 @@ const HomePage = () => {
   const [selectedCurrency] = React.useState('EUR');
   const [isLoading, setIsLoading] = React.useState(false);
   const [currentError, setError] = React.useState();
+  const [exportState, setExportState] = React.useState({
+    state: State.NONE
+  });
   const [selectedYear, setSelectedYear] = React.useState(() => new Date().getFullYear());
   const [availableYears, setAvailableYears] = React.useState();
   const [summary, setSummary] = React.useState();
@@ -578,7 +617,13 @@ const HomePage = () => {
   };
 
   const onExportClicked = () => {
-    exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear));
+    exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear)).then(() => setExportState({
+      state: State.SUCCESS,
+      message: 'Report was saved.'
+    })).catch(error => setExportState({
+      state: State.ERROR,
+      message: 'Report could not be exported.'
+    }));
   };
 
   const onInfoClicked = () => {
@@ -591,12 +636,20 @@ const HomePage = () => {
         className: "flex h-full justify-center items-center"
       }, /*#__PURE__*/React__default["default"].createElement(Spinner, null));
     } else {
-      return /*#__PURE__*/React__default["default"].createElement(RewardTable, {
+      return /*#__PURE__*/React__default["default"].createElement("div", {
+        className: "flex"
+      }, /*#__PURE__*/React__default["default"].createElement(RewardTable, {
         language: selectedLanguage,
         wallet: selectedWallet,
         selectedYear: selectedYear,
         rewardData: myStakingRewards
-      });
+      }), /*#__PURE__*/React__default["default"].createElement(Toast, {
+        state: exportState.state,
+        message: exportState.message,
+        onDismiss: () => setExportState({
+          state: State.NONE
+        })
+      }));
     }
   };
 

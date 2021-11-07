@@ -24,7 +24,8 @@
 			"HTTP",
 			"PROFILE",
 			"STORE",
-			"FILESYSTEM"
+			"FILESYSTEM",
+			"TIMERS"
 		],
 		"urls": [
 			"^"

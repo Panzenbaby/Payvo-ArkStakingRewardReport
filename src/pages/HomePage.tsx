@@ -10,6 +10,8 @@ import {tokenValueFactor} from '../utils';
 import * as ExportUtils from '../ExportUtils';
 import {InfoModal} from '../components/modals/InfoModal';
 import {DisclaimerView} from '../components/DisclaimerView';
+import {State} from '../enums/State';
+import {Toast} from '../components/Toast';
 
 const {Components} = globalThis.payvo;
 const {Spinner} = Components;
@@ -24,6 +26,7 @@ export const HomePage = () => {
 
     const [isLoading, setIsLoading] = useState(false);
     const [currentError, setError] = useState();
+    const [exportState, setExportState] = useState({state: State.NONE});
     const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
     const [availableYears, setAvailableYears] = useState();
     const [summary, setSummary] = useState();
@@ -114,7 +117,9 @@ export const HomePage = () => {
     };
 
     const onExportClicked = () => {
-        ExportUtils.exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear));
+        ExportUtils.exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear))
+            .then(() => setExportState({state: State.SUCCESS, message: 'Report was saved.'}))
+            .catch((error) => setExportState({state: State.ERROR, message: 'Report could not be exported.'}));
     };
 
     const onInfoClicked = () => {
@@ -130,7 +135,18 @@ export const HomePage = () => {
             );
         } else {
             return (
-                <RewardTable language={selectedLanguage} wallet={selectedWallet} selectedYear={selectedYear} rewardData={myStakingRewards}/>
+                <div className="flex">
+                    <RewardTable
+                        language={selectedLanguage}
+                        wallet={selectedWallet}
+                        selectedYear={selectedYear}
+                        rewardData={myStakingRewards}/>
+
+                    <Toast
+                        state={exportState.state}
+                        message={exportState.message}
+                        onDismiss={() => setExportState({state: State.NONE})}/>
+                </div>
             );
         }
     };
@@ -139,7 +155,7 @@ export const HomePage = () => {
         if (!disclaimerAccepted) {
             return (
                 <DisclaimerView
-                    onAccept={onDisclaimerAccepted} />
+                    onAccept={onDisclaimerAccepted}/>
             );
         } else if (!wallets || wallets.length == 0) {
             return <EmptyWalletHint/>;

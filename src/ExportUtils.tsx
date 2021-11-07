@@ -24,11 +24,5 @@ export const exportTransactions = (api: any, wallet: Wallet, year: number, trans
     });
 
     const asString = rows.join('\n');
-    api.filesystem().askUserToSaveFile(asString).then((result) => {
-        // TODO find a way to notify user
-        console.log('success');
-    }).catch((error) => {
-        // TODO find a way to notify user
-        console.log(error.message);
-    });
+    return api.filesystem().askUserToSaveFile(asString);
 };

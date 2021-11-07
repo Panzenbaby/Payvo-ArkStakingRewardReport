@@ -49,7 +49,7 @@ export const RewardTable = (props: RewardTableProps) => {
         );
     } else {
         return (
-            <div className="mt-4 relative">
+            <div className="flex-1 mt-4 relative">
                 <Table columns={columns} data={currentData}>
                     {(transaction: Transaction) => <TransactionListItem language={props.language} wallet={props.wallet} transaction={transaction}/>}
                 </Table>
