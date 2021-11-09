@@ -6,7 +6,7 @@ import type {Wallet} from '../../Types';
 import {formatCurrency} from '../../utils';
 
 const {Components} = globalThis.payvo;
-const {Card, Button} = Components;
+const {Card, Button, Tooltip} = Components;
 
 interface HeaderProps {
     selectedLanguage: string,
@@ -88,22 +88,28 @@ export const Header = (props: HeaderProps) => {
         }
 
         return (
-            <Card className="flex flex-1 mr-4">
+            <Card className="flex flex-end mr-4">
                 <div className="flex flex-row">
-                    <Button
-                        className="flex flex-1 ml-4 mr-2"
-                        icon="ArrowRotateLeft"
-                        onClick={props.onRetryClicked}/>
+                    <Tooltip content="Retry" className="mb-1">
+                        <Button
+                            className="flex flex-1 ml-4 mr-2"
+                            icon="ArrowRotateLeft"
+                            onClick={props.onRetryClicked}/>
+                    </Tooltip>
 
-                    <Button
-                        className="flex flex-1 ml-2 mr-2"
-                        icon="ArrowUpTurnBracket"
-                        onClick={props.onExportClicked}/>
+                    <Tooltip content="Export" className="mb-1">
+                        <Button
+                            className="flex flex-1 ml-2 mr-2"
+                            icon="ArrowUpTurnBracket"
+                            onClick={props.onExportClicked}/>
+                    </Tooltip>
 
-                    <Button
-                        className="flex flex-1 ml-2 mr-4"
-                        icon="CircleInfo"
-                        onClick={props.onInfoClicked}/>
+                    <Tooltip content="Info" className="mb-1">
+                        <Button
+                            className="flex flex-1 ml-2 mr-4"
+                            icon="CircleInfo"
+                            onClick={props.onInfoClicked}/>
+                    </Tooltip>
                 </div>
             </Card>
         );
@@ -133,8 +139,10 @@ export const Header = (props: HeaderProps) => {
                     </div>
                 </Card>
 
-                {renderSummary()}
-                {renderButtons()}
+                <div className="flex flex-row flex-1 justify-end">
+                    {renderSummary()}
+                    {renderButtons()}
+                </div>
             </div>
 
             <div className="flex full-w mt-4 mb-4 pt-0.5 bg-theme-secondary-800"/>

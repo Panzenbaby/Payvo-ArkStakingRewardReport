@@ -24,5 +24,6 @@ export const exportTransactions = (api: any, wallet: Wallet, year: number, trans
     });
 
     const asString = rows.join('\n');
-    return api.filesystem().askUserToSaveFile(asString);
+    const fileNameSuggestion = `stakingRewardReport_${year}_${wallet.address}`;
+    return api.filesystem().askUserToSaveFile(asString, fileNameSuggestion);
 };

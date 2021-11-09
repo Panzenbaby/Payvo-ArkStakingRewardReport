@@ -128,7 +128,8 @@ const {
 } = globalThis.payvo;
 const {
   Card,
-  Button: Button$3
+  Button: Button$3,
+  Tooltip: Tooltip$1
 } = Components$8;
 const Header = props => {
   const [selectedYear, setSelectedYear] = React.useState(props.selectedYear);
@@ -197,22 +198,31 @@ const Header = props => {
     }
 
     return /*#__PURE__*/React__default["default"].createElement(Card, {
-      className: "flex flex-1 mr-4"
+      className: "flex flex-end mr-4"
     }, /*#__PURE__*/React__default["default"].createElement("div", {
       className: "flex flex-row"
+    }, /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
+      content: "Retry",
+      className: "mb-1"
     }, /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-4 mr-2",
       icon: "ArrowRotateLeft",
       onClick: props.onRetryClicked
-    }), /*#__PURE__*/React__default["default"].createElement(Button$3, {
+    })), /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
+      content: "Export",
+      className: "mb-1"
+    }, /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-2 mr-2",
       icon: "ArrowUpTurnBracket",
       onClick: props.onExportClicked
-    }), /*#__PURE__*/React__default["default"].createElement(Button$3, {
+    })), /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
+      content: "Info",
+      className: "mb-1"
+    }, /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-2 mr-4",
       icon: "CircleInfo",
       onClick: props.onInfoClicked
-    })));
+    }))));
   };
 
   return /*#__PURE__*/React__default["default"].createElement("div", {
@@ -236,7 +246,9 @@ const Header = props => {
     className: "flex flex-row justify-center font-semibold text-theme-secondary-text text-sm"
   }, "Period"), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "align-center ml-4 mr-4 text-theme-secondary-700 font-bold"
-  }, selectedYear))), renderSummary(), renderButtons()), /*#__PURE__*/React__default["default"].createElement("div", {
+  }, selectedYear))), /*#__PURE__*/React__default["default"].createElement("div", {
+    className: "flex flex-row flex-1 justify-end"
+  }, renderSummary(), renderButtons())), /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex full-w mt-4 mb-4 pt-0.5 bg-theme-secondary-800"
   }));
 };
@@ -422,7 +434,8 @@ const exportTransactions = (api, wallet, year, transactions) => {
     rows.push(buildExportRow(transaction, wallet.coin, language));
   });
   const asString = rows.join('\n');
-  return api.filesystem().askUserToSaveFile(asString);
+  const fileNameSuggestion = `stakingRewardReport_${year}_${wallet.address}`;
+  return api.filesystem().askUserToSaveFile(asString, fileNameSuggestion);
 };
 
 const {
@@ -604,7 +617,6 @@ const HomePage = () => {
       setIsLoading(false);
     }).catch(error => {
       console.log(error.message);
-      console.log(error.message);
       setError(error);
     });
   };
@@ -622,7 +634,7 @@ const HomePage = () => {
       message: 'Report was saved.'
     })).catch(error => setExportState({
       state: State.ERROR,
-      message: 'Report could not be exported.'
+      message: error.message
     }));
   };
 
@@ -868,7 +880,6 @@ class RemoteDataStore {
     const result = [];
     let page = 1;
     let isEmpty = true;
-    const date = Date.now();
 
     do {
       const url = ARK_API_URL + requestPath + `&page=${page}`;
@@ -877,7 +888,6 @@ class RemoteDataStore {
       Array.prototype.push.apply(result, response.data);
       page++;
       isEmpty = !response || !response.data || response.data.length == 0;
-      console.log(date);
     } while (!executePermission.canceled && !isEmpty);
 
     return result;

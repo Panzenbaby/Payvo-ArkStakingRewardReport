@@ -104,7 +104,6 @@ export const HomePage = () => {
             setIsLoading(false);
         }).catch((error) => {
             console.log(error.message);
-            console.log(error.message);
             setError(error);
         });
     };
@@ -119,7 +118,7 @@ export const HomePage = () => {
     const onExportClicked = () => {
         ExportUtils.exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear))
             .then(() => setExportState({state: State.SUCCESS, message: 'Report was saved.'}))
-            .catch((error) => setExportState({state: State.ERROR, message: 'Report could not be exported.'}));
+            .catch((error) => setExportState({state: State.ERROR, message: error.message}));
     };
 
     const onInfoClicked = () => {
