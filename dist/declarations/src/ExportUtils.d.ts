@@ -1,2 +1,2 @@
-import { Transaction, Wallet } from './Types';
-export declare const exportTransactions: (api: any, wallet: Wallet, year: number, transactions: Transaction[]) => any;
+import { Transaction, Wallet } from "./Types";
+export declare const exportTransactions: (api: any, wallet: Wallet, year: number, transactions: Transaction[], locale: string) => any;

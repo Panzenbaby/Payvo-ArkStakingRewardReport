@@ -1,6 +1,6 @@
-import RemoteDataStore from './RemoteDataStore';
-import {ExecutePermission, Price, Transaction, Vote, Wallet} from '../Types';
-import {secondsOfDay} from '../utils';
+import RemoteDataStore from "./RemoteDataStore";
+import {ExecutePermission, Price, Transaction, Vote, Wallet} from "../Types";
+import {secondsOfDay} from "../utils";
 
 /**
  * This class handles all of the business logic. It is the interface from the plugin to the data.

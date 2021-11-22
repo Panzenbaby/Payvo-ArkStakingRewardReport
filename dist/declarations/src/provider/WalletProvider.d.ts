@@ -1,5 +1,5 @@
-import React from 'react';
-import Repository from '../repository/Repository';
+import React from "react";
+import Repository from "../repository/Repository";
 interface WalletProviderProps {
     api: any;
     repository: Repository;

@@ -1,6 +1,6 @@
-import { Transaction, Wallet } from '../../Types';
+import { Transaction, Wallet } from "../../Types";
 interface RewardTableProps {
-    language: string;
+    locale: string;
     selectedYear: number;
     wallet: Wallet;
     rewardData: Map<number, Transaction[]>;

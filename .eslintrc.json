@@ -21,7 +21,8 @@
     ],
     "rules": {
         "indent": ["error", 4],
-        "max-len": ["error", 180]
+        "max-len": ["error", 180],
+        "quotes": [2, "double", { "avoidEscape": true }]
     },
     "settings": {
         "react": {

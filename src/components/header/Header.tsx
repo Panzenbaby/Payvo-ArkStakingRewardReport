@@ -1,15 +1,17 @@
-import React, {useState, useEffect} from 'react';
-import {DropDownOption, Summary} from '../../Types';
+import React, {useState, useEffect} from "react";
+import {DropDownOption, Summary} from "../../Types";
 
-import WalletItem from './WalletItem';
-import type {Wallet} from '../../Types';
-import {formatCurrency} from '../../utils';
+import WalletItem from "./WalletItem";
+import type {Wallet} from "../../Types";
+import {formatCurrency} from "../../utils";
+import {TranslatedText} from "../TranslatedText";
+import {getString, INFO, PERIOD, RECEIVED_STAKING_REWARDS, TOOLTIP_EXPORT, TOOLTIP_RELOAD} from "../../Strings";
 
 const {Components} = globalThis.payvo;
 const {Card, Button, Tooltip} = Components;
 
 interface HeaderProps {
-    selectedLanguage: string,
+    selectedLocale: string,
     selectedWallet: Wallet;
     wallets: Wallet[];
     onWalletSelected: (Wallet) => any;
@@ -63,7 +65,7 @@ export const Header = (props: HeaderProps) => {
             return undefined;
         }
 
-        let summary = 'NaN';
+        let summary = "NaN";
         if (props.summary && props.summary.value && props.summary.currency) {
             summary = formatCurrency(props.summary.value, props.summary.currency);
         }
@@ -72,7 +74,7 @@ export const Header = (props: HeaderProps) => {
             <Card className="flex ml-4 mr-4">
                 <div className="flex flex-col">
                     <span className="font-semibold text-theme-secondary-text text-sm">
-                            Received Staking Rewards
+                        <TranslatedText stringKey={RECEIVED_STAKING_REWARDS}/>
                     </span>
                     <span className="font-bold text-theme-primary-600">
                         {summary}
@@ -90,21 +92,21 @@ export const Header = (props: HeaderProps) => {
         return (
             <Card className="flex flex-end mr-4">
                 <div className="flex flex-row">
-                    <Tooltip content="Retry" className="mb-1">
+                    <Tooltip content={getString(props.selectedLocale, TOOLTIP_RELOAD)} className="mb-1">
                         <Button
                             className="flex flex-1 ml-4 mr-2"
                             icon="ArrowRotateLeft"
                             onClick={props.onRetryClicked}/>
                     </Tooltip>
 
-                    <Tooltip content="Export" className="mb-1">
+                    <Tooltip content={getString(props.selectedLocale, TOOLTIP_EXPORT)} className="mb-1">
                         <Button
                             className="flex flex-1 ml-2 mr-2"
                             icon="ArrowUpTurnBracket"
                             onClick={props.onExportClicked}/>
                     </Tooltip>
 
-                    <Tooltip content="Info" className="mb-1">
+                    <Tooltip content={getString(props.selectedLocale, INFO)} className="mb-1">
                         <Button
                             className="flex flex-1 ml-2 mr-4"
                             icon="CircleInfo"
@@ -123,7 +125,7 @@ export const Header = (props: HeaderProps) => {
                     actions={walletActions}
                     onSelect={onWalletSelected}>
 
-                    <WalletItem wallet={props.selectedWallet} language={props.selectedLanguage}/>
+                    <WalletItem wallet={props.selectedWallet} locale={props.selectedLocale}/>
                 </Card>
 
                 <Card
@@ -132,7 +134,9 @@ export const Header = (props: HeaderProps) => {
                     onSelect={onYearSelected}>
 
                     <div className="flex flex-col">
-                        <span className="flex flex-row justify-center font-semibold text-theme-secondary-text text-sm">Period</span>
+                        <span className="flex flex-row justify-center font-semibold text-theme-secondary-text text-sm">
+                            <TranslatedText stringKey={PERIOD}/>
+                        </span>
                         <span className="align-center ml-4 mr-4 text-theme-secondary-700 font-bold">
                             {selectedYear}
                         </span>

@@ -1,23 +1,23 @@
-import {Transaction} from './Types';
+import {Transaction} from "./Types";
 
 export const tokenValueFactor: number = 1e8;
 
 export const secondsOfDay: number = 24 * 60 * 60;
 
 export const isCrypto = (currency: string) => {
-    return ['ARK', 'BTC', 'ETH', 'LTC'].includes(currency);
+    return ["ARK", "BTC", "ETH", "LTC"].includes(currency);
 };
 
-export const formatCurrency = (amount: number, currency: string, language: string = 'en') => {
+export const formatCurrency = (amount: number, currency: string, locale: string = "en") => {
     const asCrypto = isCrypto(currency);
 
     if (asCrypto) {
         amount = amount / tokenValueFactor;
     }
 
-    return amount.toLocaleString(language, {
-        style: 'currency',
-        currencyDisplay: 'code',
+    return amount.toLocaleString(locale, {
+        style: "currency",
+        currencyDisplay: "code",
         currency,
         minimumFractionDigits: 2,
         maximumFractionDigits: asCrypto ? 8 : 2,
@@ -29,25 +29,25 @@ export const getDaysSince = (fromTime: number) => {
     return Math.round(Math.abs(((fromTime) - endDate) / secondsOfDay));
 };
 
-export const buildExportRow = (transaction: Transaction, token: string, language: string) => {
-    const amount = getAmountValue(transaction, token, language);
-    const value = getPriceValue(transaction, language);
+export const buildExportRow = (transaction: Transaction, token: string, locale: string) => {
+    const amount = getAmountValue(transaction, token, locale);
+    const value = getPriceValue(transaction, locale);
 
     const transactionDate = new Date(transaction.date * 1000);
-    const dateTime = transactionDate.toLocaleDateString() + ' ' + transactionDate.toLocaleTimeString();
+    const dateTime = transactionDate.toLocaleDateString() + " " + transactionDate.toLocaleTimeString();
     const transactionId = transaction.transactionId;
 
     return `${amount} | ${value} | ${dateTime} | ${transactionId}`;
 };
 
-const getPriceValue = (transaction: Transaction, language: string) => {
+export const getPriceValue = (transaction: Transaction, locale: string) => {
     let closePrice = undefined;
     if (transaction.price && transaction.price.close) {
         closePrice = transaction.price.close;
     }
 
     if (!closePrice) {
-        return 'NaN';
+        return "NaN";
     }
 
     let tokens = transaction.amount;
@@ -58,14 +58,14 @@ const getPriceValue = (transaction: Transaction, language: string) => {
     }
 
     const value = tokens * closePrice;
-    return formatCurrency(value, currency, language);
+    return formatCurrency(value, currency, locale);
 };
 
-const getAmountValue = (transaction: Transaction, token: string, language: string) => {
+const getAmountValue = (transaction: Transaction, token: string, locale: string) => {
     if (!transaction.amount) {
-        return 'NaN';
+        return "NaN";
     }
 
     const value = transaction.amount;
-    return formatCurrency(value, token, language);
+    return formatCurrency(value, token, locale);
 };

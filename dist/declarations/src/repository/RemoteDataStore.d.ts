@@ -1,4 +1,4 @@
-import { ExecutePermission, Price, Transaction, Vote, Wallet } from '../Types';
+import { ExecutePermission, Price, Transaction, Vote, Wallet } from "../Types";
 /**
  * This class is our data source. It is the interface to each used REST Api.
  */

@@ -41,18 +41,18 @@ const Avatar = ({
 const tokenValueFactor = 1e8;
 const secondsOfDay = 24 * 60 * 60;
 const isCrypto = currency => {
-  return ['ARK', 'BTC', 'ETH', 'LTC'].includes(currency);
+  return ["ARK", "BTC", "ETH", "LTC"].includes(currency);
 };
-const formatCurrency = (amount, currency, language = 'en') => {
+const formatCurrency = (amount, currency, locale = "en") => {
   const asCrypto = isCrypto(currency);
 
   if (asCrypto) {
     amount = amount / tokenValueFactor;
   }
 
-  return amount.toLocaleString(language, {
-    style: 'currency',
-    currencyDisplay: 'code',
+  return amount.toLocaleString(locale, {
+    style: "currency",
+    currencyDisplay: "code",
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: asCrypto ? 8 : 2
@@ -62,16 +62,15 @@ const getDaysSince = fromTime => {
   const endDate = Date.now() / 1000;
   return Math.round(Math.abs((fromTime - endDate) / secondsOfDay));
 };
-const buildExportRow = (transaction, token, language) => {
-  const amount = getAmountValue(transaction, token, language);
-  const value = getPriceValue(transaction, language);
+const buildExportRow = (transaction, token, locale) => {
+  const amount = getAmountValue(transaction, token, locale);
+  const value = getPriceValue(transaction, locale);
   const transactionDate = new Date(transaction.date * 1000);
-  const dateTime = transactionDate.toLocaleDateString() + ' ' + transactionDate.toLocaleTimeString();
+  const dateTime = transactionDate.toLocaleDateString() + " " + transactionDate.toLocaleTimeString();
   const transactionId = transaction.transactionId;
   return `${amount} | ${value} | ${dateTime} | ${transactionId}`;
 };
-
-const getPriceValue = (transaction, language) => {
+const getPriceValue = (transaction, locale) => {
   let closePrice = undefined;
 
   if (transaction.price && transaction.price.close) {
@@ -79,7 +78,7 @@ const getPriceValue = (transaction, language) => {
   }
 
   if (!closePrice) {
-    return 'NaN';
+    return "NaN";
   }
 
   let tokens = transaction.amount;
@@ -90,16 +89,16 @@ const getPriceValue = (transaction, language) => {
   }
 
   const value = tokens * closePrice;
-  return formatCurrency(value, currency, language);
+  return formatCurrency(value, currency, locale);
 };
 
-const getAmountValue = (transaction, token, language) => {
+const getAmountValue = (transaction, token, locale) => {
   if (!transaction.amount) {
-    return 'NaN';
+    return "NaN";
   }
 
   const value = transaction.amount;
-  return formatCurrency(value, token, language);
+  return formatCurrency(value, token, locale);
 };
 
 const WalletItem = props => {
@@ -120,7 +119,112 @@ const WalletItem = props => {
     className: "truncate text-theme-secondary-500 dark:text-theme-secondary-700 font-semibold"
   }, address), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "truncate text-theme-secondary-500 dark:text-theme-secondary-700 font-semibold"
-  }, formatCurrency(balance, coin, props.language))));
+  }, formatCurrency(balance, coin, props.locale))));
+};
+
+const NO_WALLET_MESSAGE = "NO_WALLET_MESSAGE";
+const WALLET_IMPORT = "WALLET_IMPORT";
+const WALLET_CREATE = "WALLET_CREATE";
+const PERIOD = "PERIOD";
+const RECEIVED_STAKING_REWARDS = "RECEIVED_STAKING_REWARDS";
+const EXPORT_SUCCESS = "EXPORT_SUCCESS";
+const EXPORT_ERROR = "EXPORT_ERROR";
+const TOOLTIP_EXPORT = "TOOLTIP_EXPORT";
+const TOOLTIP_RELOAD = "TOOLTIP_RELOAD";
+const DISCLAIMER_TITLE = "DISCLAIMER_TITLE";
+const DISCLAIMER_NOTE = "DISCLAIMER_NOTE";
+const INFO = "INFO";
+const INFO_MODAL_PRICES_ONE = "INFO_MODAL_PRICES_ONE";
+const INFO_MODAL_PRICES_TWO = "INFO_MODAL_PRICES_TWO";
+const TABLE_HEADER_AMOUNT = "TABLE_HEADER_AMOUNT";
+const TABLE_HEADER_VALUE = "TABLE_HEADER_VALUE";
+const TABLE_HEADER_DATE = "TABLE_HEADER_DATE";
+const TABLE_HEADER_FROM = "TABLE_HEADER_FROM";
+const TABLE_HEADER_TRANSACTION = "TABLE_HEADER_TRANSACTION";
+const TABLE_EMPTY_MESSAGE = "TABLE_EMPTY_MESSAGE";
+const ACCEPT = "ACCEPT";
+const RETRY = "RETRY";
+const ERROR_TITLE = "ERROR_TITLE";
+const en = {
+  NO_WALLET_MESSAGE: "Your profile has no ARK wallet so far. Please import a wallet or create a new one.",
+  WALLET_IMPORT: "Import",
+  WALLET_CREATE: "Create",
+  PERIOD: "Period",
+  RECEIVED_STAKING_REWARDS: "Received Staking Rewards",
+  EXPORT_SUCCESS: "Your report was saved.",
+  EXPORT_ERROR: "Your report was not saved.",
+  TOOLTIP_EXPORT: "Export",
+  TOOLTIP_RELOAD: "Reload",
+  DISCLAIMER_TITLE: "Disclaimer",
+  // eslint-disable-next-line max-len
+  DISCLAIMER_NOTE: "The information presented by this plugin has been prepared for informational purposes only, and is not intended to provide, and should not be relied on for tax, legal or accounting advice.",
+  INFO: "Info",
+  INFO_MODAL_PRICES_ONE: "This plugin uses the public REST Api from",
+  INFO_MODAL_PRICES_TWO: "to get the price of each transaction. The displayed price is the close price of the day the transaction has been proceeded.",
+  TABLE_HEADER_AMOUNT: "Amount",
+  TABLE_HEADER_VALUE: "Value",
+  TABLE_HEADER_DATE: "Date",
+  TABLE_HEADER_FROM: "From",
+  TABLE_HEADER_TRANSACTION: "Transaction ID",
+  TABLE_EMPTY_MESSAGE: "The transactions found for the selected period.",
+  ACCEPT: "Accept",
+  RETRY: "Retry",
+  ERROR_TITLE: "An error occurred"
+};
+const de = {
+  NO_WALLET_MESSAGE: "In deinem Profil ist noch keine ARK Wallet hinterlegt. Bitte füge eine Wallet hinzu oder erstelle eine neue.",
+  WALLET_IMPORT: "Importieren",
+  WALLET_CREATE: "Neu erstellen",
+  PERIOD: "Zeitraum",
+  RECEIVED_STAKING_REWARDS: "Erhaltene Staking Rewards",
+  TOOLTIP_EXPORT: "Exportieren",
+  TOOLTIP_RELOAD: "Neu laden",
+  EXPORT_SUCCESS: "Dein Bericht wurde gespeichert.",
+  EXPORT_ERROR: "Dein Bericht wurde nicht gespeichert.",
+  DISCLAIMER_TITLE: "Haftungsausschluss",
+  // eslint-disable-next-line max-len
+  DISCLAIMER_NOTE: "Die von diesem Plugin präsentierten Informationen wurden nur zu Informationszwecken erstellt und dienen nicht der Bereitstellung von Steuer-, Rechts- oder Buchhaltungsberatung und sollten daher nicht als Grundlage dienen.",
+  INFO: "Info",
+  INFO_MODAL_PRICES_ONE: "Dieses Plugin nutzt die REST API von",
+  // eslint-disable-next-line max-len
+  INFO_MODAL_PRICES_TWO: "um den Preis einer jeden Transaktion zu laden. Bei den angezeigten Preisen handelt es sich um den Schlusskurs des Tages an dem die Transaktion durchgeführt wurde.",
+  TABLE_HEADER_AMOUNT: "Anzahl",
+  TABLE_HEADER_VALUE: "Wert",
+  TABLE_HEADER_DATE: "Datum",
+  TABLE_HEADER_FROM: "Von",
+  TABLE_HEADER_TRANSACTION: "Transaktions ID",
+  TABLE_EMPTY_MESSAGE: "Keine Transaktionen für den ausgewählten Zeitraum gefunden.",
+  ACCEPT: "Akzeptieren",
+  RETRY: "Erneut versuchen",
+  ERROR_TITLE: "Es ist ein Fehler aufgetreten"
+};
+const getString = (locale, key) => {
+  let strings;
+
+  switch (locale) {
+    case "de-DE":
+      strings = de;
+      break;
+
+    default:
+      strings = en;
+      break;
+  }
+
+  const string = strings[key];
+
+  if (string) {
+    return string;
+  }
+
+  return en[key];
+};
+
+const TranslatedText = props => {
+  const context = useWalletContext();
+  const locale = context.api.profile().locale();
+  const text = getString(locale, props.stringKey);
+  return /*#__PURE__*/React__default["default"].createElement("div", null, text);
 };
 
 const {
@@ -175,7 +279,7 @@ const Header = props => {
       return undefined;
     }
 
-    let summary = 'NaN';
+    let summary = "NaN";
 
     if (props.summary && props.summary.value && props.summary.currency) {
       summary = formatCurrency(props.summary.value, props.summary.currency);
@@ -187,7 +291,9 @@ const Header = props => {
       className: "flex flex-col"
     }, /*#__PURE__*/React__default["default"].createElement("span", {
       className: "font-semibold text-theme-secondary-text text-sm"
-    }, "Received Staking Rewards"), /*#__PURE__*/React__default["default"].createElement("span", {
+    }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+      stringKey: RECEIVED_STAKING_REWARDS
+    })), /*#__PURE__*/React__default["default"].createElement("span", {
       className: "font-bold text-theme-primary-600"
     }, summary)));
   };
@@ -202,21 +308,21 @@ const Header = props => {
     }, /*#__PURE__*/React__default["default"].createElement("div", {
       className: "flex flex-row"
     }, /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
-      content: "Retry",
+      content: getString(props.selectedLocale, TOOLTIP_RELOAD),
       className: "mb-1"
     }, /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-4 mr-2",
       icon: "ArrowRotateLeft",
       onClick: props.onRetryClicked
     })), /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
-      content: "Export",
+      content: getString(props.selectedLocale, TOOLTIP_EXPORT),
       className: "mb-1"
     }, /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-2 mr-2",
       icon: "ArrowUpTurnBracket",
       onClick: props.onExportClicked
     })), /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
-      content: "Info",
+      content: getString(props.selectedLocale, INFO),
       className: "mb-1"
     }, /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-2 mr-4",
@@ -235,7 +341,7 @@ const Header = props => {
     onSelect: onWalletSelected
   }, /*#__PURE__*/React__default["default"].createElement(WalletItem, {
     wallet: props.selectedWallet,
-    language: props.selectedLanguage
+    locale: props.selectedLocale
   })), /*#__PURE__*/React__default["default"].createElement(Card, {
     className: "flex ml-4",
     actions: yearOptions,
@@ -244,7 +350,9 @@ const Header = props => {
     className: "flex flex-col"
   }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "flex flex-row justify-center font-semibold text-theme-secondary-text text-sm"
-  }, "Period"), /*#__PURE__*/React__default["default"].createElement("span", {
+  }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: PERIOD
+  })), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "align-center ml-4 mr-4 text-theme-secondary-700 font-bold"
   }, selectedYear))), /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex flex-row flex-1 justify-end"
@@ -254,15 +362,14 @@ const Header = props => {
 };
 
 const Keys = {
-  STORE_ADDRESS: 'store_address',
-  DISCLAIMER_ACCEPTED: 'disclaimer_accepted'
+  STORE_ADDRESS: "store_address",
+  DISCLAIMER_ACCEPTED: "disclaimer_accepted"
 };
 
-const ARK_API_URL = 'https://api.ark.io/api';
-const PRICE_API_EP_URL = 'https://min-api.cryptocompare.com/data/histoday';
-const ARK_EXPLORER_URL = 'https://explorer.ark.io';
-const ARK_EXPLORER_TRANSACTIONS_PATH = '/transaction/';
-const ARK_EXPLORER_SENDER_PATH = '/wallets/';
+const ARK_API_URL = "https://api.ark.io/api";
+const PRICE_API_EP_URL = "https://min-api.cryptocompare.com/data/histoday";
+const ARK_EXPLORER_URL = "https://explorer.ark.io";
+const ARK_EXPLORER_TRANSACTIONS_PATH = "/transaction/";
 
 const {
   Components: Components$7
@@ -275,18 +382,23 @@ const {
   Tooltip
 } = Components$7;
 const TransactionListItem = props => {
-  const value = props.transaction.amount * props.transaction.price.close / tokenValueFactor;
   const transactionExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_TRANSACTIONS_PATH + props.transaction.transactionId;
-  const senderExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_SENDER_PATH + props.transaction.senderPublicKey;
-  const idSnapShot = props.transaction.transactionId.substring(0, 9) + '...';
+  const idSnapShot = props.transaction.transactionId.substring(0, 9) + "...";
   const date = new Date(props.transaction.date * 1000);
-  const closePriceTip = formatCurrency(props.transaction.price.close, props.transaction.price.currency, props.language) + ' / ' + props.wallet.coin;
+  let price = props.transaction.price.close;
+  const currency = props.transaction.price.currency;
+
+  if (isCrypto(currency)) {
+    price = price * tokenValueFactor;
+  }
+
+  const closePriceTip = formatCurrency(price, currency, props.locale) + " / " + props.wallet.coin;
   return /*#__PURE__*/React__default["default"].createElement(TableRow, null, /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
   }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "justify-center whitespace-nowrap"
-  }, formatCurrency(props.transaction.amount, props.wallet.coin, props.language))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
+  }, formatCurrency(props.transaction.amount, props.wallet.coin, props.locale))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
   }, /*#__PURE__*/React__default["default"].createElement(Tooltip, {
@@ -294,18 +406,16 @@ const TransactionListItem = props => {
     className: "mb-1"
   }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "justify-center whitespace-nowrap"
-  }, formatCurrency(value, props.transaction.price.currency, props.language)))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
+  }, getPriceValue(props.transaction, props.locale)))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
   }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "flex items-center  whitespace-nowrap"
-  }, date.toLocaleDateString(props.language), " ", date.toLocaleTimeString(props.language))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
-    innerClassName: "justify-center",
+  }, date.toLocaleDateString(props.locale), " ", date.toLocaleTimeString(props.locale))), /*#__PURE__*/React__default["default"].createElement(TableCell, {
+    innerClassName: "justify-center text-theme-secondary-text",
     isCompact: true
-  }, /*#__PURE__*/React__default["default"].createElement(Link$2, {
-    to: senderExplorerUrl,
-    showExternalIcon: false,
-    isExternal: true
+  }, /*#__PURE__*/React__default["default"].createElement("span", {
+    className: "flex items-center  whitespace-nowrap"
   }, props.transaction.senderName)), /*#__PURE__*/React__default["default"].createElement(TableCell, {
     innerClassName: "justify-center",
     isCompact: true
@@ -329,40 +439,46 @@ const {
 const {
   Table
 } = Components$6;
-const columns = [{
-  Header: 'Amount',
-  accessor: 'amount',
-  className: 'ml-6 mr-2 justify-center'
-}, {
-  Header: 'Value',
-  accessor: transaction => transaction.amount * transaction.price.close,
-  className: 'ml-6 mr-2 justify-center'
-}, {
-  Header: 'Date',
-  accessor: 'date',
-  className: 'ml-6 mr-2 justify-center'
-}, {
-  Header: 'From',
-  className: 'ml-2 mr-2 justify-center'
-}, {
-  Header: 'Transaction',
-  className: 'ml-2 mr-2 justify-center'
-}];
+
+const columns = locale => {
+  return [{
+    Header: getString(locale, TABLE_HEADER_AMOUNT),
+    accessor: "amount",
+    className: "ml-6 mr-2 justify-center"
+  }, {
+    Header: getString(locale, TABLE_HEADER_VALUE),
+    accessor: transaction => transaction.amount * transaction.price.close,
+    className: "ml-6 mr-2 justify-center"
+  }, {
+    Header: getString(locale, TABLE_HEADER_DATE),
+    accessor: "date",
+    className: "ml-6 mr-2 justify-center"
+  }, {
+    Header: getString(locale, TABLE_HEADER_FROM),
+    className: "ml-2 mr-2 justify-center"
+  }, {
+    Header: getString(locale, TABLE_HEADER_TRANSACTION),
+    className: "ml-2 mr-2 justify-center"
+  }];
+};
+
 const RewardTable = props => {
   const currentData = props.rewardData.get(props.selectedYear) ? props.rewardData.get(props.selectedYear) : [];
 
   if (currentData.length == 0) {
     return /*#__PURE__*/React__default["default"].createElement("div", {
       className: "mt-4 relative"
-    }, /*#__PURE__*/React__default["default"].createElement("span", null, "The report of the selected period is empty."));
+    }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+      stringKey: TABLE_EMPTY_MESSAGE
+    }));
   } else {
     return /*#__PURE__*/React__default["default"].createElement("div", {
       className: "flex-1 mt-4 relative"
     }, /*#__PURE__*/React__default["default"].createElement(Table, {
-      columns: columns,
+      columns: columns(props.locale),
       data: currentData
     }, transaction => /*#__PURE__*/React__default["default"].createElement(TransactionListItem, {
-      language: props.language,
+      locale: props.locale,
       wallet: props.wallet,
       transaction: transaction
     })));
@@ -380,13 +496,17 @@ const ErrorView = props => {
     className: "relative flex flex-col flex-1 justify-center items-center rounded-lg bg-theme-feature"
   }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "text-2xl font-bold"
-  }, "Error"), /*#__PURE__*/React__default["default"].createElement("span", {
+  }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: ERROR_TITLE
+  })), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "font-bold text-red mt-6 mb-6"
   }, props.error.message), /*#__PURE__*/React__default["default"].createElement(Button$2, {
     variant: "danger",
     className: "ContactAll__CreateButton justify-end",
     onClick: props.onClick
-  }, "Retry"));
+  }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: RETRY
+  })));
 };
 
 const {
@@ -402,38 +522,42 @@ const EmptyWalletHint = props => {
     className: "flex flex-1 items-center"
   }, /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex flex-1 flex-col items-center"
-  }, /*#__PURE__*/React__default["default"].createElement("span", null, "Your profile has no ARK wallet so far. Please import a wallet or create a new one."), /*#__PURE__*/React__default["default"].createElement("div", {
+  }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: NO_WALLET_MESSAGE
+  }), /*#__PURE__*/React__default["default"].createElement("div", {
     className: "mt-4 flex-row justify-center items-stretch"
   }, /*#__PURE__*/React__default["default"].createElement(Link$1, {
     className: "mr-3",
     to: `/profiles/${context.api.profile().id()}/wallets/import`
-  }, /*#__PURE__*/React__default["default"].createElement(Button$1, null, "Import")), /*#__PURE__*/React__default["default"].createElement(Link$1, {
+  }, /*#__PURE__*/React__default["default"].createElement(Button$1, null, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: WALLET_IMPORT
+  }))), /*#__PURE__*/React__default["default"].createElement(Link$1, {
     className: "ml-3",
     to: `/profiles/${context.api.profile().id()}/wallets/create`
   }, /*#__PURE__*/React__default["default"].createElement(Button$1, {
     variant: "secondary"
-  }, "Create")))));
+  }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: WALLET_CREATE
+  }))))));
 };
 
-const exportTransactions = (api, wallet, year, transactions) => {
+const exportTransactions = (api, wallet, year, transactions, locale) => {
   if (!transactions || transactions.length == 0) {
     return;
   }
 
   const rows = [];
   const currency = transactions[0].price.currency;
-  const amount = 'amount';
-  const value = 'value';
-  const date = 'date';
-  const transactionId = 'transactionId';
+  const amount = getString(locale, TABLE_HEADER_AMOUNT);
+  const value = getString(locale, TABLE_HEADER_VALUE);
+  const date = getString(locale, TABLE_HEADER_DATE);
+  const transactionId = getString(locale, TABLE_HEADER_TRANSACTION);
   const header = `${wallet.coin} ${amount} | ${currency} ${value} | ${date} | ${transactionId}`;
   rows.push(header);
   transactions.forEach(transaction => {
-    const language = 'en'; // TODO how to get language?
-
-    rows.push(buildExportRow(transaction, wallet.coin, language));
+    rows.push(buildExportRow(transaction, wallet.coin, locale));
   });
-  const asString = rows.join('\n');
+  const asString = rows.join("\n");
   const fileNameSuggestion = `stakingRewardReport_${year}_${wallet.address}`;
   return api.filesystem().askUserToSaveFile(asString, fileNameSuggestion);
 };
@@ -446,16 +570,20 @@ const {
   Link
 } = Components$3;
 const InfoModal = props => {
-  const apiUrl = 'https://min-api.cryptocompare.com';
+  const apiUrl = "https://min-api.cryptocompare.com";
   return /*#__PURE__*/React__default["default"].createElement(Modal, {
     isOpen: props.isOpen,
-    title: 'Info',
+    title: getString(props.locale, INFO),
     onClose: props.onClose
-  }, /*#__PURE__*/React__default["default"].createElement("span", null, "This plugin uses the public REST Api from "), /*#__PURE__*/React__default["default"].createElement(Link, {
+  }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: INFO_MODAL_PRICES_ONE
+  }), /*#__PURE__*/React__default["default"].createElement(Link, {
     to: apiUrl,
     showExternalIcon: false,
     isExternal: true
-  }, apiUrl), /*#__PURE__*/React__default["default"].createElement("span", null, " to get the price of each transaction. The displayed price is the close price of the day the transaction has been proceeded."));
+  }, apiUrl), /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: INFO_MODAL_PRICES_TWO
+  }));
 };
 
 const {
@@ -465,21 +593,25 @@ const {
   Button
 } = Components$2;
 const DisclaimerView = props => {
-  const title = 'Disclaimer';
-  const message = 'The information presented by this plugin has been prepared for informational purposes only, and is not intended to provide, and should not be relied on for ' + 'tax, legal or accounting advice.';
   return /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex m-auto max-w-lg flex-col justify-center"
   }, /*#__PURE__*/React__default["default"].createElement("span", {
     className: "text-2xl font-bold"
-  }, title), /*#__PURE__*/React__default["default"].createElement("span", {
+  }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: DISCLAIMER_TITLE
+  })), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "mt-4"
-  }, message), /*#__PURE__*/React__default["default"].createElement("div", {
+  }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: DISCLAIMER_NOTE
+  })), /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex flex-row mt-6 justify-end"
   }, /*#__PURE__*/React__default["default"].createElement(Button, {
     variant: "primary",
     className: "ContactAll__CreateButton justify-end",
     onClick: props.onAccept
-  }, "Accept")));
+  }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
+    stringKey: ACCEPT
+  }))));
 };
 
 let State;
@@ -508,10 +640,10 @@ const Toast = props => {
   }, [props.state]);
 
   if (props.state !== State.NONE) {
-    let variant = 'success';
+    let variant = "success";
 
     if (props.state == State.ERROR) {
-      variant = 'danger';
+      variant = "danger";
     }
 
     return /*#__PURE__*/React__default["default"].createElement(Alert, {
@@ -534,10 +666,9 @@ const HomePage = () => {
   let executePermission = {
     canceled: false
   };
-  const context = useWalletContext(); // TODO read those from the api or create a own settings fort ist
-
-  const [selectedLanguage] = React.useState('en');
-  const [selectedCurrency] = React.useState('EUR');
+  const context = useWalletContext();
+  const [selectedLocale] = React.useState(context.api.profile().locale());
+  const [selectedCurrency] = React.useState(context.api.profile().exchangeCurrency());
   const [isLoading, setIsLoading] = React.useState(false);
   const [currentError, setError] = React.useState();
   const [exportState, setExportState] = React.useState({
@@ -551,7 +682,7 @@ const HomePage = () => {
   const [disclaimerAccepted, setDisclaimerAccepted] = React.useState(() => {
     return context.api.store().data().get(Keys.DISCLAIMER_ACCEPTED) === true;
   });
-  const [wallets] = React.useState(() => context.api.profile().wallets().filter(wallet => wallet.data.COIN === 'ARK' && wallet.data.NETWORK === 'ark.mainnet').map(wallet => {
+  const [wallets] = React.useState(() => context.api.profile().wallets().filter(wallet => wallet.data.COIN === "ARK" && wallet.data.NETWORK === "ark.mainnet").map(wallet => {
     return createWallet(wallet);
   }));
   const [selectedWallet, setSelectedWallet] = React.useState(() => {
@@ -577,12 +708,17 @@ const HomePage = () => {
       let tmpSummary = 0;
       let currency = undefined;
       transactions.forEach(transaction => {
-        const value = transaction.amount * transaction.price.close / tokenValueFactor;
-        tmpSummary += value;
-
         if (!currency) {
           currency = transaction.price.currency;
         }
+
+        let value = transaction.amount * transaction.price.close;
+
+        if (!isCrypto(currency)) {
+          value = value / tokenValueFactor;
+        }
+
+        tmpSummary += value;
       });
       setSummary({
         value: tmpSummary,
@@ -629,10 +765,19 @@ const HomePage = () => {
   };
 
   const onExportClicked = () => {
-    exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear)).then(() => setExportState({
-      state: State.SUCCESS,
-      message: 'Report was saved.'
-    })).catch(error => setExportState({
+    exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear), selectedLocale).then(wasSaved => {
+      if (wasSaved) {
+        setExportState({
+          state: State.SUCCESS,
+          message: getString(selectedLocale, EXPORT_SUCCESS)
+        });
+      } else {
+        setExportState({
+          state: State.ERROR,
+          message: getString(selectedLocale, EXPORT_ERROR)
+        });
+      }
+    }).catch(error => setExportState({
       state: State.ERROR,
       message: error.message
     }));
@@ -651,7 +796,7 @@ const HomePage = () => {
       return /*#__PURE__*/React__default["default"].createElement("div", {
         className: "flex"
       }, /*#__PURE__*/React__default["default"].createElement(RewardTable, {
-        language: selectedLanguage,
+        locale: selectedLocale,
         wallet: selectedWallet,
         selectedYear: selectedYear,
         rewardData: myStakingRewards
@@ -683,7 +828,7 @@ const HomePage = () => {
       }, /*#__PURE__*/React__default["default"].createElement("div", {
         className: "flext flex-1 w-full"
       }, /*#__PURE__*/React__default["default"].createElement(Header, {
-        selectedLanguage: selectedLanguage,
+        selectedLocale: selectedLocale,
         selectedWallet: selectedWallet,
         wallets: wallets,
         onWalletSelected: onWalletSelected,
@@ -697,7 +842,8 @@ const HomePage = () => {
         onInfoClicked: onInfoClicked
       }), renderTable(), /*#__PURE__*/React__default["default"].createElement(InfoModal, {
         isOpen: isInfoShown,
-        onClose: () => setInfoShown(false)
+        onClose: () => setInfoShown(false),
+        locale: selectedLocale
       })));
     }
   };
@@ -758,7 +904,7 @@ class RemoteDataStore {
           amount: amount,
           date: date,
           price: undefined,
-          senderName: ''
+          senderName: ""
         });
       });
     } catch (error) {
@@ -792,7 +938,7 @@ class RemoteDataStore {
       resultList.forEach(transaction => {
         const date = transaction.timestamp.unix;
         const vote = transaction.asset.votes[0];
-        const isDownVote = vote[0] === '-';
+        const isDownVote = vote[0] === "-";
         const delegatePublicKey = vote.substr(1, vote.length);
         const delegateName = delegates.get(delegatePublicKey);
         result.push({
@@ -820,7 +966,7 @@ class RemoteDataStore {
 
     try {
       for (const delegateId of delegateIds) {
-        const url = ARK_API_URL + '/delegates?publicKey=' + delegateId;
+        const url = ARK_API_URL + "/delegates?publicKey=" + delegateId;
         const requestResult = await this.walletApi.http().get(url);
         const response = requestResult.json();
         result.set(delegateId, response.data[0].username);

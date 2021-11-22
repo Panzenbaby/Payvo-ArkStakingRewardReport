@@ -1,4 +1,4 @@
-import { State } from '../enums/State';
+import { State } from "../enums/State";
 interface ToastProps {
     state: State;
     message: string;

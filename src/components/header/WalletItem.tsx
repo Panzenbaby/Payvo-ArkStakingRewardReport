@@ -1,11 +1,10 @@
-import React, {useState} from 'react';
-import {Avatar} from './Avatar';
-import type {Wallet} from '../../Types';
-import {formatCurrency} from '../../utils';
-import {useWalletContext} from '../../provider/WalletProvider';
+import React from "react";
+import {Avatar} from "./Avatar";
+import type {Wallet} from "../../Types";
+import {formatCurrency} from "../../utils";
 
 interface WalletItemProps {
-    language: string,
+    locale: string,
     wallet: Wallet,
 }
 
@@ -28,7 +27,7 @@ export const WalletItem = (props: WalletItemProps) => {
                     {address}
                 </span>
                 <span className="truncate text-theme-secondary-500 dark:text-theme-secondary-700 font-semibold">
-                    {formatCurrency(balance, coin, props.language)}
+                    {formatCurrency(balance, coin, props.locale)}
                 </span>
             </div>
         </div>

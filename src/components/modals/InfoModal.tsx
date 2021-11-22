@@ -1,4 +1,6 @@
-import React from 'react';
+import React from "react";
+import {getString, INFO, INFO_MODAL_PRICES_ONE, INFO_MODAL_PRICES_TWO} from "../../Strings";
+import {TranslatedText} from "../TranslatedText";
 
 const {Components} = globalThis.payvo;
 const {Modal, Link} = Components;
@@ -6,20 +8,21 @@ const {Modal, Link} = Components;
 interface InfoModalProps {
     isOpen: boolean,
     onClose: () => void,
+    locale: string,
 }
 
 export const InfoModal = (props: InfoModalProps) => {
-    const apiUrl = 'https://min-api.cryptocompare.com';
+    const apiUrl = "https://min-api.cryptocompare.com";
 
     return (
         <Modal
             isOpen={props.isOpen}
-            title={'Info'}
+            title={getString(props.locale, INFO)}
             onClose={props.onClose}
         >
-            <span>This plugin uses the public REST Api from </span>
+            <TranslatedText stringKey={INFO_MODAL_PRICES_ONE}/>
             <Link to={apiUrl} showExternalIcon={false} isExternal>{apiUrl}</Link>
-            <span> to get the price of each transaction. The displayed price is the close price of the day the transaction has been proceeded.</span>
+            <TranslatedText stringKey={INFO_MODAL_PRICES_TWO}/>
         </Modal>
     );
 };

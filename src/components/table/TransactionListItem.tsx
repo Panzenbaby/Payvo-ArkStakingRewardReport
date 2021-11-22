@@ -1,51 +1,55 @@
-import React from 'react';
-import {Transaction, Wallet} from '../../Types';
-import {formatCurrency, tokenValueFactor} from '../../utils';
-import {ARK_EXPLORER_SENDER_PATH, ARK_EXPLORER_TRANSACTIONS_PATH, ARK_EXPLORER_URL} from '../../Constants';
+import React from "react";
+import {Transaction, Wallet} from "../../Types";
+import {formatCurrency, getPriceValue, isCrypto, tokenValueFactor} from "../../utils";
+import {ARK_EXPLORER_SENDER_PATH, ARK_EXPLORER_TRANSACTIONS_PATH, ARK_EXPLORER_URL} from "../../Constants";
 
 const {Components} = globalThis.payvo;
 const {TableCell, TableRow, Link, Icon, Tooltip} = Components;
 
 interface TransactionListItemProps {
-    language: string,
+    locale: string,
     wallet: Wallet,
     transaction: Transaction
 }
 
 export const TransactionListItem = (props: TransactionListItemProps) => {
-    const value = props.transaction.amount * props.transaction.price.close / tokenValueFactor;
     const transactionExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_TRANSACTIONS_PATH + props.transaction.transactionId;
-    const senderExplorerUrl = ARK_EXPLORER_URL + ARK_EXPLORER_SENDER_PATH + props.transaction.senderPublicKey;
-    const idSnapShot = props.transaction.transactionId.substring(0, 9) + '...';
+    const idSnapShot = props.transaction.transactionId.substring(0, 9) + "...";
     const date = new Date(props.transaction.date * 1000);
-    const closePriceTip = formatCurrency(props.transaction.price.close, props.transaction.price.currency, props.language) + ' / ' + props.wallet.coin;
+
+    let price = props.transaction.price.close;
+    const currency = props.transaction.price.currency;
+    if (isCrypto(currency)) {
+        price = price * tokenValueFactor;
+    }
+    const closePriceTip = formatCurrency(price, currency, props.locale) + " / " + props.wallet.coin;
 
     return (
         <TableRow>
             <TableCell innerClassName="justify-center text-theme-secondary-text" isCompact={true}>
                 <span className="justify-center whitespace-nowrap">
-                    {formatCurrency(props.transaction.amount, props.wallet.coin, props.language)}
+                    {formatCurrency(props.transaction.amount, props.wallet.coin, props.locale)}
                 </span>
             </TableCell>
 
             <TableCell innerClassName="justify-center text-theme-secondary-text" isCompact={true}>
                 <Tooltip content={closePriceTip} className="mb-1">
                     <span className="justify-center whitespace-nowrap">
-                        {formatCurrency(value, props.transaction.price.currency, props.language)}
+                        {getPriceValue(props.transaction, props.locale)}
                     </span>
                 </Tooltip>
             </TableCell>
 
             <TableCell innerClassName="justify-center text-theme-secondary-text" isCompact={true}>
                 <span className="flex items-center  whitespace-nowrap">
-                    {date.toLocaleDateString(props.language)} {date.toLocaleTimeString(props.language)}
+                    {date.toLocaleDateString(props.locale)} {date.toLocaleTimeString(props.locale)}
                 </span>
             </TableCell>
 
-            <TableCell innerClassName="justify-center" isCompact={true}>
-                <Link to={senderExplorerUrl} showExternalIcon={false} isExternal>
+            <TableCell innerClassName="justify-center text-theme-secondary-text" isCompact={true}>
+                <span className="flex items-center  whitespace-nowrap">
                     {props.transaction.senderName}
-                </Link>
+                </span>
             </TableCell>
 
             <TableCell innerClassName="justify-center" isCompact={true}>

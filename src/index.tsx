@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 
-import {HomePage} from './pages/HomePage';
-import {WalletProvider} from './provider/WalletProvider';
-import Repository from './repository/Repository';
+import {HomePage} from "./pages/HomePage";
+import {WalletProvider} from "./provider/WalletProvider";
+import Repository from "./repository/Repository";
 
 const entry = (api) => {
     api.launch().render(

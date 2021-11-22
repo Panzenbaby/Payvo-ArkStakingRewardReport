@@ -1,4 +1,4 @@
-import { ExecutePermission, Transaction, Wallet } from '../Types';
+import { ExecutePermission, Transaction, Wallet } from "../Types";
 /**
  * This class handles all of the business logic. It is the interface from the plugin to the data.
  */

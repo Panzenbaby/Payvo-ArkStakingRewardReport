@@ -1,4 +1,6 @@
-import React from 'react';
+import React from "react";
+import {TranslatedText} from "./TranslatedText";
+import {ACCEPT, DISCLAIMER_NOTE, DISCLAIMER_TITLE} from "../Strings";
 
 const {Components} = globalThis.payvo;
 const {Button} = Components;
@@ -8,20 +10,21 @@ interface DisclaimerViewProps {
 }
 
 export const DisclaimerView = (props: DisclaimerViewProps) => {
-    const title = 'Disclaimer';
-    const message = 'The information presented by this plugin has been prepared for informational purposes only, and is not intended to provide, and should not be relied on for ' +
-        'tax, legal or accounting advice.';
 
     return (
         <div className="flex m-auto max-w-lg flex-col justify-center">
-            <span className="text-2xl font-bold">{title}</span>
-            <span className="mt-4">{message}</span>
+            <span className="text-2xl font-bold">
+                <TranslatedText stringKey={DISCLAIMER_TITLE}/>
+            </span>
+            <span className="mt-4">
+                <TranslatedText stringKey={DISCLAIMER_NOTE}/>
+            </span>
             <div className="flex flex-row mt-6 justify-end">
                 <Button
                     variant="primary"
                     className="ContactAll__CreateButton justify-end"
                     onClick={props.onAccept}>
-                    Accept
+                    <TranslatedText stringKey={ACCEPT}/>
                 </Button>
             </div>
         </div>

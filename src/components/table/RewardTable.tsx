@@ -1,38 +1,42 @@
-import React from 'react';
-import {Transaction, Wallet} from '../../Types';
-import {TransactionListItem} from './TransactionListItem';
+import React from "react";
+import {Transaction, Wallet} from "../../Types";
+import {TransactionListItem} from "./TransactionListItem";
+import {getString, TABLE_EMPTY_MESSAGE, TABLE_HEADER_AMOUNT, TABLE_HEADER_DATE, TABLE_HEADER_FROM, TABLE_HEADER_TRANSACTION, TABLE_HEADER_VALUE} from "../../Strings";
+import {TranslatedText} from "../TranslatedText";
 
 const {Components} = globalThis.payvo;
 const {Table} = Components;
 
-const columns = [
-    {
-        Header: 'Amount',
-        accessor: 'amount',
-        className: 'ml-6 mr-2 justify-center',
-    },
-    {
-        Header: 'Value',
-        accessor: (transaction: Transaction) => transaction.amount * transaction.price.close,
-        className: 'ml-6 mr-2 justify-center',
-    },
-    {
-        Header: 'Date',
-        accessor: 'date',
-        className: 'ml-6 mr-2 justify-center',
-    },
-    {
-        Header: 'From',
-        className: 'ml-2 mr-2 justify-center',
-    },
-    {
-        Header: 'Transaction',
-        className: 'ml-2 mr-2 justify-center',
-    },
-];
+const columns = (locale: string) => {
+    return [
+        {
+            Header: getString(locale, TABLE_HEADER_AMOUNT),
+            accessor: "amount",
+            className: "ml-6 mr-2 justify-center",
+        },
+        {
+            Header: getString(locale, TABLE_HEADER_VALUE),
+            accessor: (transaction: Transaction) => transaction.amount * transaction.price.close,
+            className: "ml-6 mr-2 justify-center",
+        },
+        {
+            Header: getString(locale, TABLE_HEADER_DATE),
+            accessor: "date",
+            className: "ml-6 mr-2 justify-center",
+        },
+        {
+            Header: getString(locale, TABLE_HEADER_FROM),
+            className: "ml-2 mr-2 justify-center",
+        },
+        {
+            Header: getString(locale, TABLE_HEADER_TRANSACTION),
+            className: "ml-2 mr-2 justify-center",
+        },
+    ];
+};
 
 interface RewardTableProps {
-    language: string,
+    locale: string,
     selectedYear: number,
     wallet: Wallet,
     rewardData: Map<number, Transaction[]>
@@ -44,14 +48,14 @@ export const RewardTable = (props: RewardTableProps) => {
     if (currentData.length == 0) {
         return (
             <div className="mt-4 relative">
-                <span>The report of the selected period is empty.</span>
+                <TranslatedText stringKey={TABLE_EMPTY_MESSAGE}/>
             </div>
         );
     } else {
         return (
             <div className="flex-1 mt-4 relative">
-                <Table columns={columns} data={currentData}>
-                    {(transaction: Transaction) => <TransactionListItem language={props.language} wallet={props.wallet} transaction={transaction}/>}
+                <Table columns={columns(props.locale)} data={currentData}>
+                    {(transaction: Transaction) => <TransactionListItem locale={props.locale} wallet={props.wallet} transaction={transaction}/>}
                 </Table>
             </div>
         );

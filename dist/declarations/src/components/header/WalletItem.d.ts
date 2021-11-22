@@ -1,6 +1,6 @@
-import type { Wallet } from '../../Types';
+import type { Wallet } from "../../Types";
 interface WalletItemProps {
-    language: string;
+    locale: string;
     wallet: Wallet;
 }
 export declare const WalletItem: (props: WalletItemProps) => any;

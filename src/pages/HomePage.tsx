@@ -1,17 +1,18 @@
-import React, {useState, useEffect} from 'react';
-import {useWalletContext} from '../provider/WalletProvider';
-import {createWallet, ExecutePermission, Transaction, Wallet} from '../Types';
-import Header from '../components/header/Header';
-import {Keys} from '../Keys';
-import RewardTable from '../components/table/RewardTable';
-import {ErrorView} from '../components/ErrorView';
-import {EmptyWalletHint} from '../components/EmptyWalletHint';
-import {tokenValueFactor} from '../utils';
-import * as ExportUtils from '../ExportUtils';
-import {InfoModal} from '../components/modals/InfoModal';
-import {DisclaimerView} from '../components/DisclaimerView';
-import {State} from '../enums/State';
-import {Toast} from '../components/Toast';
+import React, {useState, useEffect} from "react";
+import {useWalletContext} from "../provider/WalletProvider";
+import {createWallet, ExecutePermission, Transaction, Wallet} from "../Types";
+import Header from "../components/header/Header";
+import {Keys} from "../Keys";
+import RewardTable from "../components/table/RewardTable";
+import {ErrorView} from "../components/ErrorView";
+import {EmptyWalletHint} from "../components/EmptyWalletHint";
+import {isCrypto, tokenValueFactor} from "../utils";
+import * as ExportUtils from "../ExportUtils";
+import {InfoModal} from "../components/modals/InfoModal";
+import {DisclaimerView} from "../components/DisclaimerView";
+import {State} from "../enums/State";
+import {Toast} from "../components/Toast";
+import {EXPORT_ERROR, EXPORT_SUCCESS, getString} from "../Strings";
 
 const {Components} = globalThis.payvo;
 const {Spinner} = Components;
@@ -20,9 +21,8 @@ export const HomePage = () => {
     let executePermission: ExecutePermission = {canceled: false};
     const context = useWalletContext();
 
-    // TODO read those from the api or create a own settings fort ist
-    const [selectedLanguage] = useState('en');
-    const [selectedCurrency] = useState('EUR');
+    const [selectedLocale] = useState(context.api.profile().locale());
+    const [selectedCurrency] = useState(context.api.profile().exchangeCurrency());
 
     const [isLoading, setIsLoading] = useState(false);
     const [currentError, setError] = useState();
@@ -38,7 +38,7 @@ export const HomePage = () => {
 
     const [wallets] = useState(() =>
         context.api.profile().wallets()
-            .filter((wallet: any) => wallet.data.COIN === 'ARK' && wallet.data.NETWORK === 'ark.mainnet')
+            .filter((wallet: any) => wallet.data.COIN === "ARK" && wallet.data.NETWORK === "ark.mainnet")
             .map((wallet) => {
                 return createWallet(wallet);
             }),
@@ -66,12 +66,15 @@ export const HomePage = () => {
 
             let currency = undefined;
             transactions.forEach((transaction) => {
-                const value = transaction.amount * transaction.price.close / tokenValueFactor;
-                tmpSummary += value;
-
                 if (!currency) {
                     currency = transaction.price.currency;
                 }
+                let value = transaction.amount * transaction.price.close;
+                if (!isCrypto(currency)) {
+                    value = value / tokenValueFactor;
+                }
+
+                tmpSummary += value;
             });
 
             setSummary({value: tmpSummary, currency: currency});
@@ -116,8 +119,14 @@ export const HomePage = () => {
     };
 
     const onExportClicked = () => {
-        ExportUtils.exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear))
-            .then(() => setExportState({state: State.SUCCESS, message: 'Report was saved.'}))
+        ExportUtils.exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear), selectedLocale)
+            .then((wasSaved) => {
+                if (wasSaved) {
+                    setExportState({state: State.SUCCESS, message: getString(selectedLocale, EXPORT_SUCCESS)});
+                } else {
+                    setExportState({state: State.ERROR, message: getString(selectedLocale, EXPORT_ERROR)});
+                }
+            })
             .catch((error) => setExportState({state: State.ERROR, message: error.message}));
     };
 
@@ -136,7 +145,7 @@ export const HomePage = () => {
             return (
                 <div className="flex">
                     <RewardTable
-                        language={selectedLanguage}
+                        locale={selectedLocale}
                         wallet={selectedWallet}
                         selectedYear={selectedYear}
                         rewardData={myStakingRewards}/>
@@ -165,7 +174,7 @@ export const HomePage = () => {
                 <div className="flex ml-6 mr-6 flex-row w-full">
                     <div className="flext flex-1 w-full">
                         <Header
-                            selectedLanguage={selectedLanguage}
+                            selectedLocale={selectedLocale}
                             selectedWallet={selectedWallet}
                             wallets={wallets}
                             onWalletSelected={onWalletSelected}
@@ -183,6 +192,7 @@ export const HomePage = () => {
                         <InfoModal
                             isOpen={isInfoShown}
                             onClose={() => setInfoShown(false)}
+                            locale={selectedLocale}
                         />
                     </div>
                 </div>

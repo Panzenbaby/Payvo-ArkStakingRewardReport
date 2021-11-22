@@ -1,6 +1,6 @@
-import {State} from '../enums/State';
-import React, {useEffect} from 'react';
-import {useWalletContext} from '../provider/WalletProvider';
+import {State} from "../enums/State";
+import React, {useEffect} from "react";
+import {useWalletContext} from "../provider/WalletProvider";
 
 const {Components} = globalThis.payvo;
 const {Alert} = Components;
@@ -25,9 +25,9 @@ export const Toast = (props: ToastProps) => {
     }, [props.state]);
 
     if (props.state !== State.NONE) {
-        let variant = 'success';
+        let variant = "success";
         if (props.state == State.ERROR) {
-            variant = 'danger';
+            variant = "danger";
         }
         return (
             <Alert

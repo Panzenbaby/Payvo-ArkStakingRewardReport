@@ -1,6 +1,6 @@
-import {ExecutePermission, Price, Transaction, Vote, Wallet} from '../Types';
-import {ARK_API_URL, PRICE_API_EP_URL} from '../Constants';
-import {getDaysSince} from '../utils';
+import {ExecutePermission, Price, Transaction, Vote, Wallet} from "../Types";
+import {ARK_API_URL, PRICE_API_EP_URL} from "../Constants";
+import {getDaysSince} from "../utils";
 
 /**
  * This class is our data source. It is the interface to each used REST Api.
@@ -54,7 +54,7 @@ export default class RemoteDataStore {
                     amount: amount,
                     date: date,
                     price: undefined,
-                    senderName: '',
+                    senderName: "",
                 });
             });
         } catch (error) {
@@ -88,7 +88,7 @@ export default class RemoteDataStore {
             resultList.forEach((transaction) => {
                 const date = transaction.timestamp.unix;
                 const vote = transaction.asset.votes[0];
-                const isDownVote = vote[0] === '-';
+                const isDownVote = vote[0] === "-";
                 const delegatePublicKey = vote.substr(1, vote.length);
                 const delegateName = delegates.get(delegatePublicKey);
 
@@ -115,7 +115,7 @@ export default class RemoteDataStore {
         const result = new Map();
         try {
             for (const delegateId of delegateIds) {
-                const url = ARK_API_URL + '/delegates?publicKey=' + delegateId;
+                const url = ARK_API_URL + "/delegates?publicKey=" + delegateId;
                 const requestResult = await this.walletApi.http().get(url);
                 const response = requestResult.json();
 
