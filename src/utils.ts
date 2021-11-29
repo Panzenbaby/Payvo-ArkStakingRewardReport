@@ -29,17 +29,6 @@ export const getDaysSince = (fromTime: number) => {
     return Math.round(Math.abs(((fromTime) - endDate) / secondsOfDay));
 };
 
-export const buildExportRow = (transaction: Transaction, token: string, locale: string) => {
-    const amount = getAmountValue(transaction, token, locale);
-    const value = getPriceValue(transaction, locale);
-
-    const transactionDate = new Date(transaction.date * 1000);
-    const dateTime = transactionDate.toLocaleDateString() + " " + transactionDate.toLocaleTimeString();
-    const transactionId = transaction.transactionId;
-
-    return `${amount} | ${value} | ${dateTime} | ${transactionId}`;
-};
-
 export const getPriceValue = (transaction: Transaction, locale: string) => {
     let closePrice = undefined;
     if (transaction.price && transaction.price.close) {
@@ -61,7 +50,7 @@ export const getPriceValue = (transaction: Transaction, locale: string) => {
     return formatCurrency(value, currency, locale);
 };
 
-const getAmountValue = (transaction: Transaction, token: string, locale: string) => {
+export const getAmountValue = (transaction: Transaction, token: string, locale: string) => {
     if (!transaction.amount) {
         return "NaN";
     }

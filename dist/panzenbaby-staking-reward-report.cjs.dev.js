@@ -62,14 +62,6 @@ const getDaysSince = fromTime => {
   const endDate = Date.now() / 1000;
   return Math.round(Math.abs((fromTime - endDate) / secondsOfDay));
 };
-const buildExportRow = (transaction, token, locale) => {
-  const amount = getAmountValue(transaction, token, locale);
-  const value = getPriceValue(transaction, locale);
-  const transactionDate = new Date(transaction.date * 1000);
-  const dateTime = transactionDate.toLocaleDateString() + " " + transactionDate.toLocaleTimeString();
-  const transactionId = transaction.transactionId;
-  return `${amount} | ${value} | ${dateTime} | ${transactionId}`;
-};
 const getPriceValue = (transaction, locale) => {
   let closePrice = undefined;
 
@@ -91,7 +83,6 @@ const getPriceValue = (transaction, locale) => {
   const value = tokens * closePrice;
   return formatCurrency(value, currency, locale);
 };
-
 const getAmountValue = (transaction, token, locale) => {
   if (!transaction.amount) {
     return "NaN";
@@ -129,6 +120,7 @@ const PERIOD = "PERIOD";
 const RECEIVED_STAKING_REWARDS = "RECEIVED_STAKING_REWARDS";
 const EXPORT_SUCCESS = "EXPORT_SUCCESS";
 const EXPORT_ERROR = "EXPORT_ERROR";
+const EXPORT_ERROR_EMPTY_REPORT = "EXPORT_ERROR_EMPTY_REPORT";
 const TOOLTIP_EXPORT = "TOOLTIP_EXPORT";
 const TOOLTIP_RELOAD = "TOOLTIP_RELOAD";
 const DISCLAIMER_TITLE = "DISCLAIMER_TITLE";
@@ -141,6 +133,7 @@ const TABLE_HEADER_VALUE = "TABLE_HEADER_VALUE";
 const TABLE_HEADER_DATE = "TABLE_HEADER_DATE";
 const TABLE_HEADER_FROM = "TABLE_HEADER_FROM";
 const TABLE_HEADER_TRANSACTION = "TABLE_HEADER_TRANSACTION";
+const EXPORT_HEADER_PRICE = "EXPORT_HEADER_PRICE";
 const TABLE_EMPTY_MESSAGE = "TABLE_EMPTY_MESSAGE";
 const ACCEPT = "ACCEPT";
 const RETRY = "RETRY";
@@ -153,6 +146,7 @@ const en = {
   RECEIVED_STAKING_REWARDS: "Received Staking Rewards",
   EXPORT_SUCCESS: "Your report was saved.",
   EXPORT_ERROR: "Your report was not saved.",
+  EXPORT_ERROR_EMPTY_REPORT: "You can not export an empty report.",
   TOOLTIP_EXPORT: "Export",
   TOOLTIP_RELOAD: "Reload",
   DISCLAIMER_TITLE: "Disclaimer",
@@ -167,6 +161,7 @@ const en = {
   TABLE_HEADER_FROM: "From",
   TABLE_HEADER_TRANSACTION: "Transaction ID",
   TABLE_EMPTY_MESSAGE: "The transactions found for the selected period.",
+  EXPORT_HEADER_PRICE: "Close Price",
   ACCEPT: "Accept",
   RETRY: "Retry",
   ERROR_TITLE: "An error occurred"
@@ -181,6 +176,7 @@ const de = {
   TOOLTIP_RELOAD: "Neu laden",
   EXPORT_SUCCESS: "Dein Bericht wurde gespeichert.",
   EXPORT_ERROR: "Dein Bericht wurde nicht gespeichert.",
+  EXPORT_ERROR_EMPTY_REPORT: "Du kannst keinen leeren Bericht exportieren.",
   DISCLAIMER_TITLE: "Haftungsausschluss",
   // eslint-disable-next-line max-len
   DISCLAIMER_NOTE: "Die von diesem Plugin präsentierten Informationen wurden nur zu Informationszwecken erstellt und dienen nicht der Bereitstellung von Steuer-, Rechts- oder Buchhaltungsberatung und sollten daher nicht als Grundlage dienen.",
@@ -194,6 +190,7 @@ const de = {
   TABLE_HEADER_FROM: "Von",
   TABLE_HEADER_TRANSACTION: "Transaktions ID",
   TABLE_EMPTY_MESSAGE: "Keine Transaktionen für den ausgewählten Zeitraum gefunden.",
+  EXPORT_HEADER_PRICE: "Schlusspreis",
   ACCEPT: "Akzeptieren",
   RETRY: "Erneut versuchen",
   ERROR_TITLE: "Es ist ein Fehler aufgetreten"
@@ -236,7 +233,6 @@ const {
   Tooltip: Tooltip$1
 } = Components$8;
 const Header = props => {
-  const [selectedYear, setSelectedYear] = React.useState(props.selectedYear);
   const [walletActions, setWalletActions] = React.useState();
   const [yearOptions, setYearOptions] = React.useState();
   React.useEffect(() => {
@@ -265,7 +261,6 @@ const Header = props => {
 
   const onYearSelected = selection => {
     const year = selection.value;
-    setSelectedYear(year);
     props.onYearSelected(year);
   };
 
@@ -275,18 +270,19 @@ const Header = props => {
   };
 
   const renderSummary = () => {
-    if (props.isLoading || !props.summary) {
-      return undefined;
-    }
-
     let value = 0;
 
-    if (props.summary && props.summary.value && props.summary.currency) {
+    if (props.summary && props.summary.value) {
       value = props.summary.value;
     }
 
     const summary = formatCurrency(value, props.selectedCurrency);
-    const amountTip = formatCurrency(props.summary.amount, props.selectedWallet.coin);
+    let amountTip = "";
+
+    if (props.summary && props.summary.amount) {
+      amountTip = formatCurrency(props.summary.amount, props.selectedWallet.coin);
+    }
+
     return /*#__PURE__*/React__default["default"].createElement(Card, {
       className: "flex ml-4 mr-4"
     }, /*#__PURE__*/React__default["default"].createElement("div", {
@@ -303,12 +299,8 @@ const Header = props => {
   };
 
   const renderButtons = () => {
-    if (props.isLoading) {
-      return undefined;
-    }
-
     return /*#__PURE__*/React__default["default"].createElement(Card, {
-      className: "flex flex-end mr-4"
+      className: "flex flex-end"
     }, /*#__PURE__*/React__default["default"].createElement("div", {
       className: "flex flex-row"
     }, /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
@@ -317,14 +309,16 @@ const Header = props => {
     }, /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-4 mr-2",
       icon: "ArrowRotateLeft",
-      onClick: props.onRetryClicked
+      onClick: props.onRetryClicked,
+      disabled: props.isLoading
     })), /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
       content: getString(props.selectedLocale, TOOLTIP_EXPORT),
       className: "mb-1"
     }, /*#__PURE__*/React__default["default"].createElement(Button$3, {
       className: "flex flex-1 ml-2 mr-2",
       icon: "ArrowUpTurnBracket",
-      onClick: props.onExportClicked
+      onClick: props.onExportClicked,
+      disabled: props.isLoading
     })), /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
       content: getString(props.selectedLocale, INFO),
       className: "mb-1"
@@ -340,7 +334,6 @@ const Header = props => {
   }, /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex flex-row"
   }, /*#__PURE__*/React__default["default"].createElement(Card, {
-    className: "flex ml-4",
     actions: walletActions,
     onSelect: onWalletSelected
   }, /*#__PURE__*/React__default["default"].createElement(WalletItem, {
@@ -358,7 +351,7 @@ const Header = props => {
     stringKey: PERIOD
   })), /*#__PURE__*/React__default["default"].createElement("span", {
     className: "align-center ml-4 mr-4 text-theme-secondary-700 font-bold"
-  }, selectedYear))), /*#__PURE__*/React__default["default"].createElement("div", {
+  }, props.selectedYear))), /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex flex-row flex-1 justify-end"
   }, renderSummary(), renderButtons())), /*#__PURE__*/React__default["default"].createElement("div", {
     className: "flex full-w mt-4 mb-4 pt-0.5 bg-theme-secondary-800"
@@ -554,9 +547,10 @@ const exportTransactions = (api, wallet, year, transactions, locale) => {
   const currency = transactions[0].price.currency;
   const amount = getString(locale, TABLE_HEADER_AMOUNT);
   const value = getString(locale, TABLE_HEADER_VALUE);
+  const price = getString(locale, EXPORT_HEADER_PRICE);
   const date = getString(locale, TABLE_HEADER_DATE);
   const transactionId = getString(locale, TABLE_HEADER_TRANSACTION);
-  const header = `${wallet.coin} ${amount} | ${currency} ${value} | ${date} | ${transactionId}`;
+  const header = `${wallet.coin} ${amount} | ${currency} ${value} | ${price} | ${date} | ${transactionId}`;
   rows.push(header);
   transactions.forEach(transaction => {
     rows.push(buildExportRow(transaction, wallet.coin, locale));
@@ -564,6 +558,28 @@ const exportTransactions = (api, wallet, year, transactions, locale) => {
   const asString = rows.join("\n");
   const fileNameSuggestion = `stakingRewardReport_${year}_${wallet.address}`;
   return api.filesystem().askUserToSaveFile(asString, fileNameSuggestion);
+};
+
+const buildExportRow = (transaction, token, locale) => {
+  const amount = getAmountValue(transaction, token, locale);
+  const value = getPriceValue(transaction, locale);
+  let price = "NaN";
+
+  if (transaction.price && transaction.price.close && transaction.price.currency) {
+    const currency = transaction.price.currency;
+    let closePrice = transaction.price.close;
+
+    if (isCrypto(currency)) {
+      closePrice = closePrice * tokenValueFactor;
+    }
+
+    price = formatCurrency(closePrice, currency, locale);
+  }
+
+  const transactionDate = new Date(transaction.date * 1000);
+  const dateTime = transactionDate.toLocaleDateString() + " " + transactionDate.toLocaleTimeString();
+  const transactionId = transaction.transactionId;
+  return `${amount} | ${value} | ${price} | ${dateTime} | ${transactionId}`;
 };
 
 const {
@@ -760,6 +776,12 @@ const HomePage = () => {
         setMyStakingRewards(reportMap);
         setAvailableYears(Array.from(reportMap.keys()));
         setIsLoading(false);
+        const keys = Array.from(reportMap.keys());
+
+        if (keys.length > 0) {
+          const year = keys[keys.length - 1];
+          setSelectedYear(year);
+        }
       }
     }).catch(error => {
       console.log(error.message);
@@ -775,22 +797,32 @@ const HomePage = () => {
   };
 
   const onExportClicked = () => {
-    exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear), selectedLocale).then(wasSaved => {
-      if (wasSaved) {
-        setExportState({
-          state: State.SUCCESS,
-          message: getString(selectedLocale, EXPORT_SUCCESS)
-        });
-      } else {
-        setExportState({
-          state: State.ERROR,
-          message: getString(selectedLocale, EXPORT_ERROR)
-        });
-      }
-    }).catch(error => setExportState({
-      state: State.ERROR,
-      message: error.message
-    }));
+    console.log("1");
+    const report = myStakingRewards.get(selectedYear);
+
+    if (report.length == 0) {
+      setExportState({
+        state: State.ERROR,
+        message: getString(selectedLocale, EXPORT_ERROR_EMPTY_REPORT)
+      });
+    } else {
+      exportTransactions(context.api, selectedWallet, selectedYear, report, selectedLocale).then(wasSaved => {
+        if (wasSaved) {
+          setExportState({
+            state: State.SUCCESS,
+            message: getString(selectedLocale, EXPORT_SUCCESS)
+          });
+        } else {
+          setExportState({
+            state: State.ERROR,
+            message: getString(selectedLocale, EXPORT_ERROR)
+          });
+        }
+      }).catch(error => setExportState({
+        state: State.ERROR,
+        message: error.message
+      }));
+    }
   };
 
   const onInfoClicked = () => {
@@ -803,9 +835,7 @@ const HomePage = () => {
         className: "flex h-full justify-center items-center"
       }, /*#__PURE__*/React__default["default"].createElement(Spinner, null));
     } else {
-      return /*#__PURE__*/React__default["default"].createElement("div", {
-        className: "flex"
-      }, /*#__PURE__*/React__default["default"].createElement(RewardTable, {
+      return /*#__PURE__*/React__default["default"].createElement("div", null, /*#__PURE__*/React__default["default"].createElement(RewardTable, {
         locale: selectedLocale,
         wallet: selectedWallet,
         selectedYear: selectedYear,
@@ -834,9 +864,11 @@ const HomePage = () => {
       });
     } else {
       return /*#__PURE__*/React__default["default"].createElement("div", {
-        className: "flex ml-6 mr-6 flex-row w-full"
+        className: "flex flex-1 flex-row"
       }, /*#__PURE__*/React__default["default"].createElement("div", {
-        className: "flext flex-1 w-full"
+        className: "flex flex-1"
+      }), /*#__PURE__*/React__default["default"].createElement("div", {
+        className: "justify-center"
       }, /*#__PURE__*/React__default["default"].createElement(Header, {
         selectedLocale: selectedLocale,
         selectedCurrency: selectedCurrency,
@@ -855,7 +887,9 @@ const HomePage = () => {
         isOpen: isInfoShown,
         onClose: () => setInfoShown(false),
         locale: selectedLocale
-      })));
+      })), /*#__PURE__*/React__default["default"].createElement("div", {
+        className: "flex flex-1"
+      }));
     }
   };
 

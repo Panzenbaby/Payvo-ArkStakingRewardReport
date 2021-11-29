@@ -27,8 +27,6 @@ interface HeaderProps {
 }
 
 export const Header = (props: HeaderProps) => {
-    const [selectedYear, setSelectedYear] = useState(props.selectedYear);
-
     const [walletActions, setWalletActions] = useState();
     const [yearOptions, setYearOptions] = useState();
 
@@ -52,7 +50,6 @@ export const Header = (props: HeaderProps) => {
 
     const onYearSelected = (selection: DropDownOption) => {
         const year = selection.value;
-        setSelectedYear(year);
         props.onYearSelected(year);
     };
 
@@ -62,17 +59,16 @@ export const Header = (props: HeaderProps) => {
     };
 
     const renderSummary = () => {
-        if (props.isLoading || !props.summary) {
-            return undefined;
-        }
-
         let value = 0;
-        if (props.summary && props.summary.value && props.summary.currency) {
+        if (props.summary && props.summary.value) {
             value = props.summary.value;
         }
-
         const summary = formatCurrency(value, props.selectedCurrency);
-        const amountTip = formatCurrency(props.summary.amount, props.selectedWallet.coin);
+
+        let amountTip = "";
+        if (props.summary && props.summary.amount) {
+            amountTip = formatCurrency(props.summary.amount, props.selectedWallet.coin);
+        }
 
         return (
             <Card className="flex ml-4 mr-4">
@@ -91,25 +87,23 @@ export const Header = (props: HeaderProps) => {
     };
 
     const renderButtons = () => {
-        if (props.isLoading) {
-            return undefined;
-        }
-
         return (
-            <Card className="flex flex-end mr-4">
+            <Card className="flex flex-end">
                 <div className="flex flex-row">
                     <Tooltip content={getString(props.selectedLocale, TOOLTIP_RELOAD)} className="mb-1">
                         <Button
                             className="flex flex-1 ml-4 mr-2"
                             icon="ArrowRotateLeft"
-                            onClick={props.onRetryClicked}/>
+                            onClick={props.onRetryClicked}
+                            disabled={props.isLoading}/>
                     </Tooltip>
 
                     <Tooltip content={getString(props.selectedLocale, TOOLTIP_EXPORT)} className="mb-1">
                         <Button
                             className="flex flex-1 ml-2 mr-2"
                             icon="ArrowUpTurnBracket"
-                            onClick={props.onExportClicked}/>
+                            onClick={props.onExportClicked}
+                            disabled={props.isLoading}/>
                     </Tooltip>
 
                     <Tooltip content={getString(props.selectedLocale, INFO)} className="mb-1">
@@ -127,7 +121,6 @@ export const Header = (props: HeaderProps) => {
         <div className="flex flex-col">
             <div className="flex flex-row">
                 <Card
-                    className="flex ml-4"
                     actions={walletActions}
                     onSelect={onWalletSelected}>
 
@@ -144,7 +137,7 @@ export const Header = (props: HeaderProps) => {
                             <TranslatedText stringKey={PERIOD}/>
                         </span>
                         <span className="align-center ml-4 mr-4 text-theme-secondary-700 font-bold">
-                            {selectedYear}
+                            {props.selectedYear}
                         </span>
                     </div>
                 </Card>

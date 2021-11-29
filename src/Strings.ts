@@ -6,6 +6,7 @@ export const RECEIVED_STAKING_REWARDS = "RECEIVED_STAKING_REWARDS";
 
 export const EXPORT_SUCCESS = "EXPORT_SUCCESS";
 export const EXPORT_ERROR = "EXPORT_ERROR";
+export const EXPORT_ERROR_EMPTY_REPORT = "EXPORT_ERROR_EMPTY_REPORT";
 
 export const TOOLTIP_EXPORT = "TOOLTIP_EXPORT";
 export const TOOLTIP_RELOAD = "TOOLTIP_RELOAD";
@@ -22,6 +23,7 @@ export const TABLE_HEADER_VALUE = "TABLE_HEADER_VALUE";
 export const TABLE_HEADER_DATE = "TABLE_HEADER_DATE";
 export const TABLE_HEADER_FROM = "TABLE_HEADER_FROM";
 export const TABLE_HEADER_TRANSACTION = "TABLE_HEADER_TRANSACTION";
+export const EXPORT_HEADER_PRICE = "EXPORT_HEADER_PRICE";
 
 export const TABLE_EMPTY_MESSAGE = "TABLE_EMPTY_MESSAGE";
 
@@ -37,6 +39,7 @@ const en = {
     RECEIVED_STAKING_REWARDS: "Received Staking Rewards",
     EXPORT_SUCCESS: "Your report was saved.",
     EXPORT_ERROR: "Your report was not saved.",
+    EXPORT_ERROR_EMPTY_REPORT: "You can not export an empty report.",
     TOOLTIP_EXPORT: "Export",
     TOOLTIP_RELOAD: "Reload",
     DISCLAIMER_TITLE: "Disclaimer",
@@ -51,6 +54,7 @@ const en = {
     TABLE_HEADER_FROM: "From",
     TABLE_HEADER_TRANSACTION: "Transaction ID",
     TABLE_EMPTY_MESSAGE: "The transactions found for the selected period.",
+    EXPORT_HEADER_PRICE: "Close Price",
     ACCEPT: "Accept",
     RETRY: "Retry",
     ERROR_TITLE: "An error occurred",
@@ -66,6 +70,7 @@ const de = {
     TOOLTIP_RELOAD: "Neu laden",
     EXPORT_SUCCESS: "Dein Bericht wurde gespeichert.",
     EXPORT_ERROR: "Dein Bericht wurde nicht gespeichert.",
+    EXPORT_ERROR_EMPTY_REPORT: "Du kannst keinen leeren Bericht exportieren.",
     DISCLAIMER_TITLE: "Haftungsausschluss",
     // eslint-disable-next-line max-len
     DISCLAIMER_NOTE: "Die von diesem Plugin präsentierten Informationen wurden nur zu Informationszwecken erstellt und dienen nicht der Bereitstellung von Steuer-, Rechts- oder Buchhaltungsberatung und sollten daher nicht als Grundlage dienen.",
@@ -79,6 +84,7 @@ const de = {
     TABLE_HEADER_FROM: "Von",
     TABLE_HEADER_TRANSACTION: "Transaktions ID",
     TABLE_EMPTY_MESSAGE: "Keine Transaktionen für den ausgewählten Zeitraum gefunden.",
+    EXPORT_HEADER_PRICE: "Schlusspreis",
     ACCEPT: "Akzeptieren",
     RETRY: "Erneut versuchen",
     ERROR_TITLE: "Es ist ein Fehler aufgetreten",

@@ -12,7 +12,7 @@ import {InfoModal} from "../components/modals/InfoModal";
 import {DisclaimerView} from "../components/DisclaimerView";
 import {State} from "../enums/State";
 import {Toast} from "../components/Toast";
-import {EXPORT_ERROR, EXPORT_SUCCESS, getString} from "../Strings";
+import {EXPORT_ERROR, EXPORT_ERROR_EMPTY_REPORT, EXPORT_SUCCESS, getString} from "../Strings";
 
 const {Components} = globalThis.payvo;
 const {Spinner} = Components;
@@ -112,6 +112,12 @@ export const HomePage = () => {
                 setMyStakingRewards(reportMap);
                 setAvailableYears(Array.from(reportMap.keys()));
                 setIsLoading(false);
+
+                const keys = Array.from(reportMap.keys());
+                if (keys.length > 0) {
+                    const year = keys[keys.length - 1];
+                    setSelectedYear(year);
+                }
             }
         }).catch((error) => {
             console.log(error.message);
@@ -127,15 +133,22 @@ export const HomePage = () => {
     };
 
     const onExportClicked = () => {
-        ExportUtils.exportTransactions(context.api, selectedWallet, selectedYear, myStakingRewards.get(selectedYear), selectedLocale)
-            .then((wasSaved) => {
-                if (wasSaved) {
-                    setExportState({state: State.SUCCESS, message: getString(selectedLocale, EXPORT_SUCCESS)});
-                } else {
-                    setExportState({state: State.ERROR, message: getString(selectedLocale, EXPORT_ERROR)});
-                }
-            })
-            .catch((error) => setExportState({state: State.ERROR, message: error.message}));
+        console.log("1")
+        const report = myStakingRewards.get(selectedYear);
+
+        if (report.length == 0) {
+            setExportState({state: State.ERROR, message: getString(selectedLocale, EXPORT_ERROR_EMPTY_REPORT)});
+        } else {
+            ExportUtils.exportTransactions(context.api, selectedWallet, selectedYear, report, selectedLocale)
+                .then((wasSaved) => {
+                    if (wasSaved) {
+                        setExportState({state: State.SUCCESS, message: getString(selectedLocale, EXPORT_SUCCESS)});
+                    } else {
+                        setExportState({state: State.ERROR, message: getString(selectedLocale, EXPORT_ERROR)});
+                    }
+                })
+                .catch((error) => setExportState({state: State.ERROR, message: error.message}));
+        }
     };
 
     const onInfoClicked = () => {
@@ -151,7 +164,7 @@ export const HomePage = () => {
             );
         } else {
             return (
-                <div className="flex">
+                <div>
                     <RewardTable
                         locale={selectedLocale}
                         wallet={selectedWallet}
@@ -179,8 +192,10 @@ export const HomePage = () => {
             return <ErrorView error={currentError} onClick={onRetryClicked}/>;
         } else {
             return (
-                <div className="flex ml-6 mr-6 flex-row w-full">
-                    <div className="flext flex-1 w-full">
+                <div className="flex flex-1 flex-row">
+                    <div className="flex flex-1"/>
+
+                    <div className="justify-center">
                         <Header
                             selectedLocale={selectedLocale}
                             selectedCurrency={selectedCurrency}
@@ -204,6 +219,7 @@ export const HomePage = () => {
                             locale={selectedLocale}
                         />
                     </div>
+                    <div className="flex flex-1"/>
                 </div>
             );
         }
