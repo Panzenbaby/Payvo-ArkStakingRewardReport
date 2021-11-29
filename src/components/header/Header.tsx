@@ -12,6 +12,7 @@ const {Card, Button, Tooltip} = Components;
 
 interface HeaderProps {
     selectedLocale: string,
+    selectedCurrency: string,
     selectedWallet: Wallet;
     wallets: Wallet[];
     onWalletSelected: (Wallet) => any;
@@ -65,10 +66,13 @@ export const Header = (props: HeaderProps) => {
             return undefined;
         }
 
-        let summary = "NaN";
+        let value = 0;
         if (props.summary && props.summary.value && props.summary.currency) {
-            summary = formatCurrency(props.summary.value, props.summary.currency);
+            value = props.summary.value;
         }
+
+        const summary = formatCurrency(value, props.selectedCurrency);
+        const amountTip = formatCurrency(props.summary.amount, props.selectedWallet.coin);
 
         return (
             <Card className="flex ml-4 mr-4">
@@ -76,9 +80,11 @@ export const Header = (props: HeaderProps) => {
                     <span className="font-semibold text-theme-secondary-text text-sm">
                         <TranslatedText stringKey={RECEIVED_STAKING_REWARDS}/>
                     </span>
-                    <span className="font-bold text-theme-primary-600">
-                        {summary}
-                    </span>
+                    <Tooltip content={amountTip}>
+                        <span className="font-bold text-theme-primary-600">
+                            {summary}
+                        </span>
+                    </Tooltip>
                 </div>
             </Card>
         );

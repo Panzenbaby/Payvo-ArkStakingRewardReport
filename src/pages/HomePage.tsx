@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 import {useWalletContext} from "../provider/WalletProvider";
-import {createWallet, ExecutePermission, Transaction, Wallet} from "../Types";
+import {createWallet, ExecutePermission, ExportState, Transaction, Wallet} from "../Types";
 import Header from "../components/header/Header";
 import {Keys} from "../Keys";
 import RewardTable from "../components/table/RewardTable";
@@ -18,25 +18,26 @@ const {Components} = globalThis.payvo;
 const {Spinner} = Components;
 
 export const HomePage = () => {
-    let executePermission: ExecutePermission = {canceled: false};
     const context = useWalletContext();
 
-    const [selectedLocale] = useState(context.api.profile().locale());
-    const [selectedCurrency] = useState(context.api.profile().exchangeCurrency());
+    const [selectedLocale] = useState<string>(context.api.profile().locale());
+    const [selectedCurrency] = useState<string>(context.api.profile().exchangeCurrency());
 
-    const [isLoading, setIsLoading] = useState(false);
-    const [currentError, setError] = useState();
-    const [exportState, setExportState] = useState({state: State.NONE});
-    const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
-    const [availableYears, setAvailableYears] = useState();
-    const [summary, setSummary] = useState();
-    const [myStakingRewards, setMyStakingRewards] = useState(new Map<number, Transaction[]>());
-    const [isInfoShown, setInfoShown] = useState(false);
-    const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => {
+    const [executePermission, setExecutePermission] = useState<ExecutePermission>({canceled: false});
+
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [currentError, setError] = useState<Error>();
+    const [exportState, setExportState] = useState<ExportState>({state: State.NONE});
+    const [selectedYear, setSelectedYear] = useState<number>(() => new Date().getFullYear());
+    const [availableYears, setAvailableYears] = useState<number[]>();
+    const [summary, setSummary] = useState<number>();
+    const [myStakingRewards, setMyStakingRewards] = useState<Transaction[]>(new Map<number, Transaction[]>());
+    const [isInfoShown, setInfoShown] = useState<boolean>(false);
+    const [disclaimerAccepted, setDisclaimerAccepted] = useState<boolean>(() => {
         return context.api.store().data().get(Keys.DISCLAIMER_ACCEPTED) === true;
     });
 
-    const [wallets] = useState(() =>
+    const [wallets] = useState<Wallet[]>(() =>
         context.api.profile().wallets()
             .filter((wallet: any) => wallet.data.COIN === "ARK" && wallet.data.NETWORK === "ark.mainnet")
             .map((wallet) => {
@@ -44,7 +45,7 @@ export const HomePage = () => {
             }),
     );
 
-    const [selectedWallet, setSelectedWallet] = useState(() => {
+    const [selectedWallet, setSelectedWallet] = useState<Wallet>(() => {
         if (wallets.length) {
             let result = wallets[0];
             const selectedAddress = context.api.store().data().get(Keys.STORE_ADDRESS);
@@ -62,6 +63,7 @@ export const HomePage = () => {
     useEffect(() => {
         const transactions = myStakingRewards.get(selectedYear);
         if (transactions) {
+            let amount = 0;
             let tmpSummary = 0;
 
             let currency = undefined;
@@ -69,6 +71,8 @@ export const HomePage = () => {
                 if (!currency) {
                     currency = transaction.price.currency;
                 }
+
+                amount += transaction.amount;
                 let value = transaction.amount * transaction.price.close;
                 if (!isCrypto(currency)) {
                     value = value / tokenValueFactor;
@@ -77,7 +81,7 @@ export const HomePage = () => {
                 tmpSummary += value;
             });
 
-            setSummary({value: tmpSummary, currency: currency});
+            setSummary({amount: amount, value: tmpSummary, currency: currency});
         }
     }, [myStakingRewards, selectedYear]);
 
@@ -99,12 +103,16 @@ export const HomePage = () => {
     const loadTransactions = () => {
         setIsLoading(true);
 
+        const newPermission = {canceled: false};
         executePermission.canceled = true;
-        executePermission = {canceled: false};
-        context.repository.generateStakingRewardReport(executePermission, selectedCurrency, selectedWallet).then((reportMap: Map<number, Transaction[]>) => {
-            setMyStakingRewards(reportMap);
-            setAvailableYears(Array.from(reportMap.keys()));
-            setIsLoading(false);
+        setExecutePermission(newPermission);
+
+        context.repository.generateStakingRewardReport(newPermission, selectedCurrency, selectedWallet).then((reportMap: Map<number, Transaction[]>) => {
+            if (reportMap) {
+                setMyStakingRewards(reportMap);
+                setAvailableYears(Array.from(reportMap.keys()));
+                setIsLoading(false);
+            }
         }).catch((error) => {
             console.log(error.message);
             setError(error);
@@ -175,6 +183,7 @@ export const HomePage = () => {
                     <div className="flext flex-1 w-full">
                         <Header
                             selectedLocale={selectedLocale}
+                            selectedCurrency={selectedCurrency}
                             selectedWallet={selectedWallet}
                             wallets={wallets}
                             onWalletSelected={onWalletSelected}

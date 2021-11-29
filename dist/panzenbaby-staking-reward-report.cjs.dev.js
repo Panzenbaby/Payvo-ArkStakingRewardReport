@@ -279,12 +279,14 @@ const Header = props => {
       return undefined;
     }
 
-    let summary = "NaN";
+    let value = 0;
 
     if (props.summary && props.summary.value && props.summary.currency) {
-      summary = formatCurrency(props.summary.value, props.summary.currency);
+      value = props.summary.value;
     }
 
+    const summary = formatCurrency(value, props.selectedCurrency);
+    const amountTip = formatCurrency(props.summary.amount, props.selectedWallet.coin);
     return /*#__PURE__*/React__default["default"].createElement(Card, {
       className: "flex ml-4 mr-4"
     }, /*#__PURE__*/React__default["default"].createElement("div", {
@@ -293,9 +295,11 @@ const Header = props => {
       className: "font-semibold text-theme-secondary-text text-sm"
     }, /*#__PURE__*/React__default["default"].createElement(TranslatedText, {
       stringKey: RECEIVED_STAKING_REWARDS
-    })), /*#__PURE__*/React__default["default"].createElement("span", {
+    })), /*#__PURE__*/React__default["default"].createElement(Tooltip$1, {
+      content: amountTip
+    }, /*#__PURE__*/React__default["default"].createElement("span", {
       className: "font-bold text-theme-primary-600"
-    }, summary)));
+    }, summary))));
   };
 
   const renderButtons = () => {
@@ -663,12 +667,12 @@ const {
   Spinner
 } = Components;
 const HomePage = () => {
-  let executePermission = {
-    canceled: false
-  };
   const context = useWalletContext();
   const [selectedLocale] = React.useState(context.api.profile().locale());
   const [selectedCurrency] = React.useState(context.api.profile().exchangeCurrency());
+  const [executePermission, setExecutePermission] = React.useState({
+    canceled: false
+  });
   const [isLoading, setIsLoading] = React.useState(false);
   const [currentError, setError] = React.useState();
   const [exportState, setExportState] = React.useState({
@@ -705,6 +709,7 @@ const HomePage = () => {
     const transactions = myStakingRewards.get(selectedYear);
 
     if (transactions) {
+      let amount = 0;
       let tmpSummary = 0;
       let currency = undefined;
       transactions.forEach(transaction => {
@@ -712,6 +717,7 @@ const HomePage = () => {
           currency = transaction.price.currency;
         }
 
+        amount += transaction.amount;
         let value = transaction.amount * transaction.price.close;
 
         if (!isCrypto(currency)) {
@@ -721,6 +727,7 @@ const HomePage = () => {
         tmpSummary += value;
       });
       setSummary({
+        amount: amount,
         value: tmpSummary,
         currency: currency
       });
@@ -743,14 +750,17 @@ const HomePage = () => {
 
   const loadTransactions = () => {
     setIsLoading(true);
-    executePermission.canceled = true;
-    executePermission = {
+    const newPermission = {
       canceled: false
     };
-    context.repository.generateStakingRewardReport(executePermission, selectedCurrency, selectedWallet).then(reportMap => {
-      setMyStakingRewards(reportMap);
-      setAvailableYears(Array.from(reportMap.keys()));
-      setIsLoading(false);
+    executePermission.canceled = true;
+    setExecutePermission(newPermission);
+    context.repository.generateStakingRewardReport(newPermission, selectedCurrency, selectedWallet).then(reportMap => {
+      if (reportMap) {
+        setMyStakingRewards(reportMap);
+        setAvailableYears(Array.from(reportMap.keys()));
+        setIsLoading(false);
+      }
     }).catch(error => {
       console.log(error.message);
       setError(error);
@@ -829,6 +839,7 @@ const HomePage = () => {
         className: "flext flex-1 w-full"
       }, /*#__PURE__*/React__default["default"].createElement(Header, {
         selectedLocale: selectedLocale,
+        selectedCurrency: selectedCurrency,
         selectedWallet: selectedWallet,
         wallets: wallets,
         onWalletSelected: onWalletSelected,

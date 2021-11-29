@@ -2,6 +2,7 @@ import { Summary } from "../../Types";
 import type { Wallet } from "../../Types";
 interface HeaderProps {
     selectedLocale: string;
+    selectedCurrency: string;
     selectedWallet: Wallet;
     wallets: Wallet[];
     onWalletSelected: (Wallet: any) => any;

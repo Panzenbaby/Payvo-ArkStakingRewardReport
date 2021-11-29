@@ -1,3 +1,4 @@
+import {State} from "./enums/State";
 
 export interface Wallet {
     address: string;
@@ -37,12 +38,18 @@ export interface DropDownOption {
 }
 
 export interface Summary {
+    amount: number;
     value: number;
     currency: string;
 }
 
 export interface ExecutePermission {
     canceled: boolean
+}
+
+export interface ExportState {
+    state: State,
+    message?: string
 }
 
 export const createWallet = (apiWallet) => {
