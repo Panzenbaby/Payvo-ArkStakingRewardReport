@@ -1,7 +1,7 @@
 import React from "react";
 import {Transaction, Wallet} from "../../Types";
 import {formatCurrency, getPriceValue, isCrypto, tokenValueFactor} from "../../utils";
-import {ARK_EXPLORER_SENDER_PATH, ARK_EXPLORER_TRANSACTIONS_PATH, ARK_EXPLORER_URL} from "../../Constants";
+import {ARK_EXPLORER_TRANSACTIONS_PATH, ARK_EXPLORER_URL} from "../../Constants";
 
 const {Components} = globalThis.payvo;
 const {TableCell, TableRow, Link, Icon, Tooltip} = Components;

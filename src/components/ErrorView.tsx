@@ -25,7 +25,7 @@ export const ErrorView = (props: ErrorViewProps) => {
                 variant="danger"
                 className="ContactAll__CreateButton justify-end"
                 onClick={props.onClick}>
-                    <TranslatedText stringKey={RETRY}/>
+                <TranslatedText stringKey={RETRY}/>
             </Button>
         </div>
     );

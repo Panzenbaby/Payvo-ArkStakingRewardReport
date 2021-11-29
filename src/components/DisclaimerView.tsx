@@ -10,7 +10,6 @@ interface DisclaimerViewProps {
 }
 
 export const DisclaimerView = (props: DisclaimerViewProps) => {
-
     return (
         <div className="flex m-auto max-w-lg flex-col justify-center">
             <span className="text-2xl font-bold">

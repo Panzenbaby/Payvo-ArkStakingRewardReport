@@ -133,7 +133,7 @@ export const HomePage = () => {
     };
 
     const onExportClicked = () => {
-        console.log("1")
+        console.log("1");
         const report = myStakingRewards.get(selectedYear);
 
         if (report.length == 0) {
