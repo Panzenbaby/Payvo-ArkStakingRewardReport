@@ -1,8 +1,8 @@
 {
-	"name": "@panzenbaby/staking-reward-report",
+	"name": "@panzenbaby/ark-staking-reward-report",
 	"version": "1.0.0",
 	"description": "Get an overview about your received staking rewards.",
-	"main": "dist/panzenbaby-staking-reward-report.cjs.js",
+	"main": "dist/panzenbaby-ark-staking-reward-report.cjs.js",
 	"author": "Panzenbaby",
 	"license": "MIT",
 	"private": false,
