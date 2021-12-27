@@ -9,8 +9,15 @@ interface TranslatedTextProps {
 export const TranslatedText = (props: TranslatedTextProps) => {
     const context = useWalletContext();
 
-    const locale = context.api.profile().locale();
-    const text = getString(locale, props.stringKey);
+    const locale = () => {
+        try {
+            return context.api.profile().locale();
+        } catch (e) {
+            return "en-US";
+        }
+    };
+
+    const text = getString(locale(), props.stringKey);
 
     return (<div>{text}</div>);
 };

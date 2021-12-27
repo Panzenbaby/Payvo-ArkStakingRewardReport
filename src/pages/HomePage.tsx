@@ -20,8 +20,20 @@ const {Spinner} = Components;
 export const HomePage = () => {
     const context = useWalletContext();
 
-    const [selectedLocale] = useState<string>(context.api.profile().locale());
-    const [selectedCurrency] = useState<string>(context.api.profile().exchangeCurrency());
+    const [selectedLocale] = useState<string>(() => {
+        try {
+            return context.api.profile().locale();
+        } catch (e) {
+            return "en-US";
+        }
+    });
+    const [selectedCurrency] = useState<string>(() => {
+        try {
+            return context.api.profile().exchangeCurrency();
+        } catch (e) {
+            return "USD";
+        }
+    });
 
     const [executePermission, setExecutePermission] = useState<ExecutePermission>({canceled: false});
 

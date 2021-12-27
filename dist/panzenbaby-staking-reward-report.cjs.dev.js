@@ -219,8 +219,16 @@ const getString = (locale, key) => {
 
 const TranslatedText = props => {
   const context = useWalletContext();
-  const locale = context.api.profile().locale();
-  const text = getString(locale, props.stringKey);
+
+  const locale = () => {
+    try {
+      return context.api.profile().locale();
+    } catch (e) {
+      return "en-US";
+    }
+  };
+
+  const text = getString(locale(), props.stringKey);
   return /*#__PURE__*/React__default["default"].createElement("div", null, text);
 };
 
@@ -684,8 +692,20 @@ const {
 } = Components;
 const HomePage = () => {
   const context = useWalletContext();
-  const [selectedLocale] = React.useState(context.api.profile().locale());
-  const [selectedCurrency] = React.useState(context.api.profile().exchangeCurrency());
+  const [selectedLocale] = React.useState(() => {
+    try {
+      return context.api.profile().locale();
+    } catch (e) {
+      return "en-US";
+    }
+  });
+  const [selectedCurrency] = React.useState(() => {
+    try {
+      return context.api.profile().exchangeCurrency();
+    } catch (e) {
+      return "USD";
+    }
+  });
   const [executePermission, setExecutePermission] = React.useState({
     canceled: false
   });
